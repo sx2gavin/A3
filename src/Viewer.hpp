@@ -5,6 +5,7 @@
 #include <QGLShaderProgram>
 #include <QMatrix4x4>
 #include <QtGlobal>
+#include "scene.hpp"
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
 #include <QOpenGLBuffer>
@@ -18,11 +19,14 @@ class Viewer : public QGLWidget {
     Q_OBJECT
 
 public:
+	enum Mode {POSITION_ORIENTATION, JOINTS};
     Viewer(const QGLFormat& format, QWidget *parent = 0);
     virtual ~Viewer();
     
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
+
+	void setSceneNode(SceneNode* node);
 
     // If you want to render a new frame, call do not call paintGL(),
     // instead, call update() to ensure that the view gets a paint 
@@ -56,6 +60,10 @@ private:
     void rotateWorld(float x, float y, float z);
     void scaleWorld(float x, float y, float z);
     void set_colour(const QColor& col);
+	void vCalcRotVec(float fNewX, float fNewY,
+                 float fOldX, float fOldY,
+                 float fDiameter,
+                 float *fVecX, float *fVecY, float *fVecZ);
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
     QOpenGLBuffer mCircleBufferObject;
@@ -70,6 +78,14 @@ private:
     QMatrix4x4 mPerspMatrix;
     QMatrix4x4 mTransformMatrix;
     QGLShaderProgram mProgram;
+
+	// mouse
+	Qt::MouseButton pressedMouseButton;
+	QVector2D prePos;
+	double diameter;
+
+	// Scene
+	SceneNode* root;	
 };
 
 #endif

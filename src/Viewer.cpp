@@ -33,6 +33,10 @@ QSize Viewer::sizeHint() const {
     return QSize(300, 300);
 }
 
+void Viewer::setSceneNode(SceneNode* node) {
+	root = node;
+}
+
 void Viewer::initializeGL() {
     QGLFormat glFormat = QGLWidget::format();
     if (!glFormat.sampleBuffers()) {
@@ -63,6 +67,7 @@ void Viewer::initializeGL() {
 
     double radius = width() < height() ? 
         (float)width() * 0.25 : (float)height() * 0.25;
+	diameter = 2 * radius;
         
     for(size_t i=0; i<40; ++i) {
         circleData[i*3] = radius * cos(i*2*M_PI/40);
@@ -142,6 +147,8 @@ void Viewer::resizeGL(int width, int height) {
 
 void Viewer::mousePressEvent ( QMouseEvent * event ) {
     std::cerr << "Stub: button " << event->button() << " pressed\n";
+	pressedMouseButton = event->button();
+	prePos = QVector2D(event->x(), event->y());
 }
 
 void Viewer::mouseReleaseEvent ( QMouseEvent * event ) {
@@ -150,6 +157,87 @@ void Viewer::mouseReleaseEvent ( QMouseEvent * event ) {
 
 void Viewer::mouseMoveEvent ( QMouseEvent * event ) {
     std::cerr << "Stub: Motion at " << event->x() << ", " << event->y() << std::endl;
+	if (pressedMouseButton == Qt::LeftButton) {
+		translateWorld((event->x()-prePos.x()), (prePos.y()-event->y()), 0.0);
+	} else if (pressedMouseButton == Qt::MidButton) {
+		translateWorld(0.0, 0.0, (prePos.y() - event->y()));
+	} else if (pressedMouseButton == Qt::RightButton) {
+		float fVecX;
+		float fVecY;
+		float fVecZ;
+		vCalcRotVec((float)event->x() - width()/2, (float)event->y() - height()/2, (float)prePos.x() - width()/2, (float)prePos.y() - height()/2, (float)diameter, &fVecX, &fVecY, &fVecZ); 
+		std::cerr << "x = " << fVecX << "; y= " << fVecY << "; z=" << fVecZ<< std::endl;
+		rotateWorld(fVecX, fVecY, fVecZ);
+	}
+
+	prePos.setX(event->x());
+	prePos.setY(event->y());
+
+	update();
+
+}
+
+void Viewer::vCalcRotVec(float fNewX, float fNewY,
+                 float fOldX, float fOldY,
+                 float fDiameter,
+                 float *fVecX, float *fVecY, float *fVecZ) {
+   long  nXOrigin, nYOrigin;
+   float fNewVecX, fNewVecY, fNewVecZ,        /* Vector corresponding to new mouse location */
+         fOldVecX, fOldVecY, fOldVecZ,        /* Vector corresponding to old mouse location */
+         fLength;
+
+   /* Vector pointing from center of virtual trackball to
+    * new mouse position
+    */
+   fNewVecX    = fNewX * 2.0 / fDiameter;
+   fNewVecY    = fNewY * 2.0 / fDiameter;
+   fNewVecZ    = (1.0 - fNewVecX * fNewVecX - fNewVecY * fNewVecY);
+
+   /* If the Z component is less than 0, the mouse point
+    * falls outside of the trackball which is interpreted
+    * as rotation about the Z axis.
+    */
+   if (fNewVecZ < 0.0) {
+      fLength = sqrt(1.0 - fNewVecZ);
+      fNewVecZ  = 0.0;
+      fNewVecX /= fLength;
+      fNewVecY /= fLength;
+   } else {
+      fNewVecZ = sqrt(fNewVecZ);
+   }
+
+   /* Vector pointing from center of virtual trackball to
+    * old mouse position
+    */
+   fOldVecX    = fOldX * 2.0 / fDiameter;
+   fOldVecY    = fOldY * 2.0 / fDiameter;
+   fOldVecZ    = (1.0 - fOldVecX * fOldVecX - fOldVecY * fOldVecY);
+ 
+   /* If the Z component is less than 0, the mouse point
+    * falls outside of the trackball which is interpreted
+    * as rotation about the Z axis.
+    */
+   if (fOldVecZ < 0.0) {
+      fLength = sqrt(1.0 - fOldVecZ);
+      fOldVecZ  = 0.0;
+      fOldVecX /= fLength;
+      fOldVecY /= fLength;
+   } else {
+      fOldVecZ = sqrt(fOldVecZ);
+   }
+
+   /* Generate rotation vector by calculating cross product:
+    * 
+    * fOldVec x fNewVec.
+    * 
+    * The rotation vector is the axis of rotation
+    * and is non-unit length since the length of a crossproduct
+    * is related to the angle between fOldVec and fNewVec which we need
+    * in order to perform the rotation.
+    */
+   *fVecX = fOldVecY * fNewVecZ - fNewVecY * fOldVecZ;
+   *fVecY = fOldVecZ * fNewVecX - fNewVecZ * fOldVecX;
+   *fVecZ = fOldVecX * fNewVecY - fNewVecX * fOldVecY;
 }
 
 QMatrix4x4 Viewer::getCameraMatrix() {

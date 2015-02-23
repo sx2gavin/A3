@@ -22,6 +22,7 @@ int main(int argc, char** argv)
     }
  
     AppWindow window;
+	window.setSceneNode(root);
     window.resize(window.sizeHint());
     int desktopArea = QApplication::desktop()->width() * 
                       QApplication::desktop()->height();
