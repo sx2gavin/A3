@@ -18,7 +18,7 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
     , mCircleBufferObject(QGLBuffer::VertexBuffer)
 #endif
 {
-
+	sphereQuality = 2; // recursionlevel of refining the sphere.
 }
 
 Viewer::~Viewer() {
@@ -34,7 +34,11 @@ QSize Viewer::sizeHint() const {
 }
 
 void Viewer::setSceneNode(SceneNode* node) {
+	std::cerr << "setSceneNode in Viewer called." << std::endl;
 	root = node;
+	if (root == NULL) {
+		std::cerr << "ERROR: root is NULL" << std::endl;
+	}
 }
 
 void Viewer::initializeGL() {
@@ -106,18 +110,18 @@ void Viewer::initializeGL() {
     mCircleBufferObject.setUsagePattern(QGLBuffer::StaticDraw);
 #endif
 
-    /*if (!mCircleBufferObject.bind()) {
+    if (!mCircleBufferObject.bind()) {
         std::cerr << "could not bind vertex buffer to the context." << std::endl;
         return;
-    }*/
+    }
 
-    // mCircleBufferObject.allocate(circleData, 40 * 3 * sizeof(float));
+    mCircleBufferObject.allocate(circleData, 40 * 3 * sizeof(float));
 
 	createSphereGeometry();
-    mProgram.bind();
 
-    mProgram.enableAttributeArray("vert");
-    mProgram.setAttributeBuffer("vert", GL_FLOAT, 0, 3);
+    // mProgram.bind();
+    // mProgram.enableAttributeArray("vert");
+    // mProgram.setAttributeBuffer("vert", GL_FLOAT, 0, 3);
 
     mMvpMatrixLocation = mProgram.uniformLocation("mvpMatrix");
     mColorLocation = mProgram.uniformLocation("frag_color");
@@ -132,7 +136,7 @@ void Viewer::paintGL() {
     // Draw stuff
 	
 	draw_sphere();
-    // draw_trackball_circle();
+    draw_trackball_circle();
 
 }
 
@@ -288,6 +292,27 @@ void Viewer::createSphereGeometry() {
  	addTriangle(&sphereVertices, vertices, 8, 6, 7);
  	addTriangle(&sphereVertices, vertices, 9, 8, 1);
 
+	// refine triangles
+	for (int i = 0; i < sphereQuality; i++) {
+		QVector<float> newSphereVertices;
+		for (int j = 0; j < sphereVertices.size(); j+=9) {
+			QVector3D a(sphereVertices[j], sphereVertices[j+1], sphereVertices[j+2]);
+			QVector3D b(sphereVertices[j+3], sphereVertices[j+4], sphereVertices[j+5]);	
+			QVector3D c(sphereVertices[j+6], sphereVertices[j+7], sphereVertices[j+8]);
+				
+			QVector3D m_ab = getMiddlePoint(a, b);
+			QVector3D m_bc = getMiddlePoint(c, b);
+			QVector3D m_ac = getMiddlePoint(a, c);
+
+			addTriangle(&newSphereVertices, a, m_ab, m_ac);
+			addTriangle(&newSphereVertices, b, m_ab, m_bc);
+			addTriangle(&newSphereVertices, c, m_ac, m_bc);
+			addTriangle(&newSphereVertices, m_bc, m_ab, m_ac);
+		}
+		sphereVertices.clear();
+		sphereVertices = newSphereVertices;
+	}
+
 	mSphereBufferObject.create();
     mSphereBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
 
@@ -296,14 +321,18 @@ void Viewer::createSphereGeometry() {
         return;
     }
 
-	mSphereBufferObject.allocate(sphereVertices.constData(), 20 * 3 * 3 * sizeof(float));
+	mSphereBufferObject.allocate(sphereVertices.constData(), sphereVertices.size() * sizeof(float));
 }
 
 
 void Viewer::addVertax(QVector<float> *sphereVertices, QVector3D point) {
-	sphereVertices->push_back(point.x());
-	sphereVertices->push_back(point.y());
-	sphereVertices->push_back(point.z());
+	// unit circle
+	// force all the vertices to be on the sphere.
+	double length = sqrt(point.x() * point.x() + point.y() * point.y() + point.z() * point.z());
+
+	sphereVertices->push_back(point.x() / length);
+	sphereVertices->push_back(point.y() / length);
+	sphereVertices->push_back(point.z() / length);
 }
 
 void Viewer::addTriangle(QVector<float> *sphereVertices, QVector<QVector3D> vertices, int index_1, int index_2, int index_3) {
@@ -312,6 +341,20 @@ void Viewer::addTriangle(QVector<float> *sphereVertices, QVector<QVector3D> vert
 	addVertax(sphereVertices, vertices[index_3]);
 }
 
+void Viewer::addTriangle(QVector<float> *sphereVertices, QVector3D point_1, QVector3D point_2, QVector3D point_3) {
+	addVertax(sphereVertices, point_1);
+	addVertax(sphereVertices, point_2);
+	addVertax(sphereVertices, point_3);
+}
+
+
+QVector3D Viewer::getMiddlePoint(QVector3D point_1, QVector3D point_2) {
+	QVector3D middle;
+	middle.setX(point_1.x() + point_2.x());
+	middle.setY(point_1.y() + point_2.y());
+	middle.setZ(point_1.z() + point_2.z());
+	return middle;
+}
 QMatrix4x4 Viewer::getCameraMatrix() {
     // Todo: Ask if we want to keep this.
     QMatrix4x4 vMatrix;
@@ -367,6 +410,11 @@ void Viewer::draw_trackball_circle()
 
     // Bind buffer object
     mCircleBufferObject.bind();
+	
+    mProgram.bind();
+    mProgram.enableAttributeArray("vert");
+    mProgram.setAttributeBuffer("vert", GL_FLOAT, 0, 3);
+
     mProgram.setUniformValue(mMvpMatrixLocation, orthoMatrix * transformMatrix);
 
     // Draw buffer
@@ -377,8 +425,16 @@ void Viewer::draw_sphere()
 {
 	set_colour(QColor(1.0, 0.0, 0.0));
 	mSphereBufferObject.bind();
-	mProgram.setUniformValue(mMvpMatrixLocation, getCameraMatrix());
-	// Draw buffer 
-	glDrawArrays(GL_TRIANGLES, 0, 20 * 3);
+	
+    mProgram.bind();
+	mProgram.enableAttributeArray("vert");
+	mProgram.setAttributeBuffer("vert", GL_FLOAT, 0, 3);
 
+	// mProgram.setUniformValue(mMvpMatrixLocation, getCameraMatrix());
+	// Draw buffer 
+	// glDrawArrays(GL_TRIANGLES, 0, 20 * 4 * 4 * 3);
+	std::cerr<< "Before walk_gl" << std::endl;
+	root->set_shader_program(&mProgram);
+	root->set_parent_transform(getCameraMatrix());
+	root->walk_gl();	
 }

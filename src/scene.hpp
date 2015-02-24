@@ -2,9 +2,12 @@
 #define SCENE_HPP
 
 #include <list>
+#include <QGLShaderProgram>
 #include "algebra.hpp"
 #include "primitive.hpp"
 #include "material.hpp"
+#include <QMatrix4x4>
+#include <QVector3D>
 
 class SceneNode {
 public:
@@ -13,20 +16,28 @@ public:
 
   virtual void walk_gl(bool picking = false) const;
 
-  const Matrix4x4& get_transform() const { return m_trans; }
-  const Matrix4x4& get_inverse() const { return m_invtrans; }
+  const QMatrix4x4& get_transform() const { return m_trans; }
+  const QMatrix4x4& get_inverse() const { return m_invtrans; }
   
-  void set_transform(const Matrix4x4& m)
+  void set_transform(const QMatrix4x4& m)
   {
     m_trans = m;
-    m_invtrans = m.invert();
+    m_invtrans = m.inverted();
   }
 
-  void set_transform(const Matrix4x4& m, const Matrix4x4& i)
+  void set_transform(const QMatrix4x4& m, const QMatrix4x4& i)
   {
     m_trans = m;
     m_invtrans = i;
   }
+
+  void set_parent_transform(const QMatrix4x4& m)
+  {
+    m_parent_trans = m;
+	m_parent_invtrans = m.inverted();
+  }
+
+  void set_shader_program(QGLShaderProgram *program);
 
   void add_child(SceneNode* child)
   {
@@ -54,12 +65,20 @@ protected:
   std::string m_name;
 
   // Transformations
-  Matrix4x4 m_trans;
-  Matrix4x4 m_invtrans;
+  QMatrix4x4 m_trans;
+  QMatrix4x4 m_invtrans;
+
+  // Whole Transformation 
+  QMatrix4x4 m_parent_trans;
+  QMatrix4x4 m_parent_invtrans;
 
   // Hierarchy
   typedef std::list<SceneNode*> ChildList;
   ChildList m_children;
+
+  // shader program
+  QGLShaderProgram *mProgram;
+
 };
 
 class JointNode : public SceneNode {

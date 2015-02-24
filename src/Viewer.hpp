@@ -56,6 +56,8 @@ protected:
 private:
 	void addVertax(QVector<float> *sphereVertices, QVector3D point);
 	void addTriangle(QVector<float> *sphereVertices, QVector<QVector3D> vertices, int index_1, int index_2, int index_3);
+	void addTriangle(QVector<float> *sphereVertices, QVector3D point_1, QVector3D point_2, QVector3D point_3);
+	QVector3D getMiddlePoint(QVector3D point_1, QVector3D point_2);
 	void createSphereGeometry();
 	void draw_sphere();
 
@@ -84,6 +86,9 @@ private:
     QMatrix4x4 mPerspMatrix;
     QMatrix4x4 mTransformMatrix;
     QGLShaderProgram mProgram;
+	
+	// sphere
+	int sphereQuality;
 
 	// mouse
 	Qt::MouseButton pressedMouseButton;

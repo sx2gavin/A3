@@ -26,7 +26,6 @@ private:
 
     std::vector<QAction*> m_menu_actions;
     Viewer* m_viewer;
-	SceneNode* root;
 };
 
 #endif

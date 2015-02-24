@@ -12,7 +12,6 @@ AppWindow::AppWindow() {
 
     QVBoxLayout *layout = new QVBoxLayout;
     m_viewer = new Viewer(glFormat, this);
-	m_viewer->setSceneNode(root);
     layout->addWidget(m_viewer);
     setCentralWidget(new QWidget);
     centralWidget()->setLayout(layout);
@@ -22,7 +21,7 @@ AppWindow::AppWindow() {
 }
 
 void AppWindow::setSceneNode(SceneNode* node) {
-	root = node;
+	m_viewer->setSceneNode(node);
 }	
 
 void AppWindow::createActions() {
