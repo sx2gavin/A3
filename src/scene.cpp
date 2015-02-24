@@ -99,8 +99,11 @@ GeometryNode::~GeometryNode()
 
 void GeometryNode::walk_gl(bool picking) const
 {
+	m_material->set_shader_program(mProgram);
+	m_material->apply_gl();	
 	m_primitive->set_shader_program(mProgram);
 	m_primitive->set_transformation(m_parent_trans * m_trans);
+
 	m_primitive->walk_gl(picking);
 	SceneNode::walk_gl(picking);
 }
