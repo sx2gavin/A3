@@ -1,4 +1,5 @@
 #include "primitive.hpp"
+#include <cmath>
 
 Primitive::~Primitive()
 {

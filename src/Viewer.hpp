@@ -54,6 +54,10 @@ protected:
     void draw_trackball_circle();
 
 private:
+	void addVertax(QVector<float> *sphereVertices, QVector3D point);
+	void addTriangle(QVector<float> *sphereVertices, QVector<QVector3D> vertices, int index_1, int index_2, int index_3);
+	void createSphereGeometry();
+	void draw_sphere();
 
     QMatrix4x4 getCameraMatrix();
     void translateWorld(float x, float y, float z);
@@ -67,9 +71,11 @@ private:
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
     QOpenGLBuffer mCircleBufferObject;
+	QOpenGLBuffer mSphereBufferObject;
     QOpenGLVertexArrayObject mVertexArrayObject;
 #else 
     QGLBuffer mCircleBufferObject;
+	QGLBuffer mSphereBufferObject;
 #endif
     
     int mMvpMatrixLocation;

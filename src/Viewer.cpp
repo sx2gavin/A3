@@ -106,13 +106,14 @@ void Viewer::initializeGL() {
     mCircleBufferObject.setUsagePattern(QGLBuffer::StaticDraw);
 #endif
 
-    if (!mCircleBufferObject.bind()) {
+    /*if (!mCircleBufferObject.bind()) {
         std::cerr << "could not bind vertex buffer to the context." << std::endl;
         return;
-    }
+    }*/
 
-    mCircleBufferObject.allocate(circleData, 40 * 3 * sizeof(float));
+    // mCircleBufferObject.allocate(circleData, 40 * 3 * sizeof(float));
 
+	createSphereGeometry();
     mProgram.bind();
 
     mProgram.enableAttributeArray("vert");
@@ -129,8 +130,9 @@ void Viewer::paintGL() {
     // Set up lighting
 
     // Draw stuff
-
-    draw_trackball_circle();
+	
+	draw_sphere();
+    // draw_trackball_circle();
 
 }
 
@@ -140,7 +142,7 @@ void Viewer::resizeGL(int width, int height) {
     }
 
     mPerspMatrix.setToIdentity();
-    mPerspMatrix.perspective(60.0, (float) width / (float) height, 0.001, 1000);
+    mPerspMatrix.perspective(30.0, (float) width / (float) height, 0.001, 1000);
 
     glViewport(0, 0, width, height);
 }
@@ -158,14 +160,14 @@ void Viewer::mouseReleaseEvent ( QMouseEvent * event ) {
 void Viewer::mouseMoveEvent ( QMouseEvent * event ) {
     std::cerr << "Stub: Motion at " << event->x() << ", " << event->y() << std::endl;
 	if (pressedMouseButton == Qt::LeftButton) {
-		translateWorld((event->x()-prePos.x()), (prePos.y()-event->y()), 0.0);
+		translateWorld((event->x()-prePos.x()) / 100.0, (prePos.y()-event->y()) / 100.0, 0.0);
 	} else if (pressedMouseButton == Qt::MidButton) {
-		translateWorld(0.0, 0.0, (prePos.y() - event->y()));
+		translateWorld(0.0, 0.0, (prePos.y() - event->y())/100.0);
 	} else if (pressedMouseButton == Qt::RightButton) {
 		float fVecX;
 		float fVecY;
 		float fVecZ;
-		vCalcRotVec((float)event->x() - width()/2, (float)event->y() - height()/2, (float)prePos.x() - width()/2, (float)prePos.y() - height()/2, (float)diameter, &fVecX, &fVecY, &fVecZ); 
+		vCalcRotVec((float)event->x() - width() / 2,  height() / 2 - (float)event->y(), (float)prePos.x() - width()/2,  height()/2 - (float)prePos.y(), (float)diameter, &fVecX, &fVecY, &fVecZ); 
 		std::cerr << "x = " << fVecX << "; y= " << fVecY << "; z=" << fVecZ<< std::endl;
 		rotateWorld(fVecX, fVecY, fVecZ);
 	}
@@ -191,14 +193,14 @@ void Viewer::vCalcRotVec(float fNewX, float fNewY,
     */
    fNewVecX    = fNewX * 2.0 / fDiameter;
    fNewVecY    = fNewY * 2.0 / fDiameter;
-   fNewVecZ    = (1.0 - fNewVecX * fNewVecX - fNewVecY * fNewVecY);
-
+   fNewVecZ    = (std::min(width()/2, height()/2) - fNewVecX * fNewVecX - fNewVecY * fNewVecY);
+   
    /* If the Z component is less than 0, the mouse point
     * falls outside of the trackball which is interpreted
     * as rotation about the Z axis.
     */
    if (fNewVecZ < 0.0) {
-      fLength = sqrt(1.0 - fNewVecZ);
+      fLength = sqrt(std::min(width()/2, height()/2) - fNewVecZ);
       fNewVecZ  = 0.0;
       fNewVecX /= fLength;
       fNewVecY /= fLength;
@@ -211,14 +213,14 @@ void Viewer::vCalcRotVec(float fNewX, float fNewY,
     */
    fOldVecX    = fOldX * 2.0 / fDiameter;
    fOldVecY    = fOldY * 2.0 / fDiameter;
-   fOldVecZ    = (1.0 - fOldVecX * fOldVecX - fOldVecY * fOldVecY);
+   fOldVecZ    = (std::min(width()/2, height()/2) - fOldVecX * fOldVecX - fOldVecY * fOldVecY);
  
    /* If the Z component is less than 0, the mouse point
     * falls outside of the trackball which is interpreted
     * as rotation about the Z axis.
     */
    if (fOldVecZ < 0.0) {
-      fLength = sqrt(1.0 - fOldVecZ);
+      fLength = sqrt(std::min(width()/2, height()/2) - fOldVecZ);
       fOldVecZ  = 0.0;
       fOldVecX /= fLength;
       fOldVecY /= fLength;
@@ -238,6 +240,76 @@ void Viewer::vCalcRotVec(float fNewX, float fNewY,
    *fVecX = fOldVecY * fNewVecZ - fNewVecY * fOldVecZ;
    *fVecY = fOldVecZ * fNewVecX - fNewVecZ * fOldVecX;
    *fVecZ = fOldVecX * fNewVecY - fNewVecX * fOldVecY;
+}
+
+void Viewer::createSphereGeometry() {
+
+	QVector<float> sphereVertices;	
+	QVector<QVector3D> vertices;
+	vertices.resize(12);
+	float t = (1.0 + std::sqrt(5.0)) / 2.0;
+
+	vertices[0] = QVector3D(-1.0, t, 0.0);
+	vertices[1] = QVector3D(1.0, t, 0.0);
+	vertices[2] = QVector3D(-1.0, -t, 0.0);
+	vertices[3] = QVector3D(1.0, -t, 0.0);
+
+	vertices[4] = QVector3D(0.0, -1.0, t);
+	vertices[5] = QVector3D(0.0, 1.0, t);
+	vertices[6] = QVector3D(0.0, -1.0, -t);
+	vertices[7] = QVector3D(0.0, 1.0, -t);
+
+	vertices[8] = QVector3D(t, 0.0, -1.0);
+	vertices[9] = QVector3D(t, 0.0, 1.0);
+	vertices[10] = QVector3D(-t, 0.0, -1.0);
+	vertices[11] = QVector3D(-t, 0.0, 1.0);	
+
+ 	addTriangle(&sphereVertices, vertices, 0, 11, 5);
+ 	addTriangle(&sphereVertices, vertices, 0, 5, 1);
+ 	addTriangle(&sphereVertices, vertices, 0, 1, 7);
+ 	addTriangle(&sphereVertices, vertices, 0, 7, 10);
+ 	addTriangle(&sphereVertices, vertices, 0, 10, 11);
+
+ 	addTriangle(&sphereVertices, vertices, 1, 5, 9);
+ 	addTriangle(&sphereVertices, vertices, 5, 11, 4);
+ 	addTriangle(&sphereVertices, vertices, 11, 10, 2);
+ 	addTriangle(&sphereVertices, vertices, 10, 7, 6);
+ 	addTriangle(&sphereVertices, vertices, 7, 1, 8);
+
+ 	addTriangle(&sphereVertices, vertices, 3, 9, 4);
+ 	addTriangle(&sphereVertices, vertices, 3, 4, 2);
+ 	addTriangle(&sphereVertices, vertices, 3, 2, 6);
+ 	addTriangle(&sphereVertices, vertices, 3, 6, 8);
+ 	addTriangle(&sphereVertices, vertices, 3, 8, 9);
+
+ 	addTriangle(&sphereVertices, vertices, 4, 9, 5);
+ 	addTriangle(&sphereVertices, vertices, 2, 4, 11);
+ 	addTriangle(&sphereVertices, vertices, 6, 2, 10);
+ 	addTriangle(&sphereVertices, vertices, 8, 6, 7);
+ 	addTriangle(&sphereVertices, vertices, 9, 8, 1);
+
+	mSphereBufferObject.create();
+    mSphereBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
+
+    if (!mSphereBufferObject.bind()) {
+        std::cerr << "could not bind vertex buffer to the context." << std::endl;
+        return;
+    }
+
+	mSphereBufferObject.allocate(sphereVertices.constData(), 20 * 3 * 3 * sizeof(float));
+}
+
+
+void Viewer::addVertax(QVector<float> *sphereVertices, QVector3D point) {
+	sphereVertices->push_back(point.x());
+	sphereVertices->push_back(point.y());
+	sphereVertices->push_back(point.z());
+}
+
+void Viewer::addTriangle(QVector<float> *sphereVertices, QVector<QVector3D> vertices, int index_1, int index_2, int index_3) {
+	addVertax(sphereVertices, vertices[index_1]);
+	addVertax(sphereVertices, vertices[index_2]);
+	addVertax(sphereVertices, vertices[index_3]);
 }
 
 QMatrix4x4 Viewer::getCameraMatrix() {
@@ -299,4 +371,14 @@ void Viewer::draw_trackball_circle()
 
     // Draw buffer
     glDrawArrays(GL_LINE_LOOP, 0, 40);    
+}
+
+void Viewer::draw_sphere()
+{
+	set_colour(QColor(1.0, 0.0, 0.0));
+	mSphereBufferObject.bind();
+	mProgram.setUniformValue(mMvpMatrixLocation, getCameraMatrix());
+	// Draw buffer 
+	glDrawArrays(GL_TRIANGLES, 0, 20 * 3);
+
 }
