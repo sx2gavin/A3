@@ -4,6 +4,7 @@
 #include <QGLWidget>
 #include <QGLShaderProgram>
 #include <QMatrix4x4>
+#include <QVector4D>
 #include <QtGlobal>
 #include "scene.hpp"
 
@@ -70,6 +71,7 @@ private:
                  float fOldX, float fOldY,
                  float fDiameter,
                  float *fVecX, float *fVecY, float *fVecZ);
+	void vAxisRotMatrix(float fVecX, float fVecY, float fVecZ, QMatrix4x4 &mNewMat); 
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
     QOpenGLBuffer mCircleBufferObject;

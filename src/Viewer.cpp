@@ -171,9 +171,17 @@ void Viewer::mouseMoveEvent ( QMouseEvent * event ) {
 		float fVecX;
 		float fVecY;
 		float fVecZ;
-		vCalcRotVec((float)event->x() - width() / 2,  height() / 2 - (float)event->y(), (float)prePos.x() - width()/2,  height()/2 - (float)prePos.y(), (float)diameter, &fVecX, &fVecY, &fVecZ); 
+		QMatrix4x4 rotationMat;
+		vCalcRotVec((float)event->x() - width() / 2,  
+					height() / 2 - (float)event->y(), 
+					(float)prePos.x() - width() / 2,  
+					height() / 2 - (float)prePos.y(), 
+					(float)diameter, 
+					&fVecX, &fVecY, &fVecZ); 
+
 		std::cerr << "x = " << fVecX << "; y= " << fVecY << "; z=" << fVecZ<< std::endl;
-		rotateWorld(fVecX, fVecY, fVecZ);
+		vAxisRotMatrix(fVecX, fVecY, fVecZ, rotationMat); 
+		mTransformMatrix = mTransformMatrix * rotationMat;
 	}
 
 	prePos.setX(event->x());
@@ -197,14 +205,14 @@ void Viewer::vCalcRotVec(float fNewX, float fNewY,
     */
    fNewVecX    = fNewX * 2.0 / fDiameter;
    fNewVecY    = fNewY * 2.0 / fDiameter;
-   fNewVecZ    = (std::min(width()/2, height()/2) - fNewVecX * fNewVecX - fNewVecY * fNewVecY);
+   fNewVecZ    = (1.0 - fNewVecX * fNewVecX - fNewVecY * fNewVecY);
    
    /* If the Z component is less than 0, the mouse point
     * falls outside of the trackball which is interpreted
     * as rotation about the Z axis.
     */
    if (fNewVecZ < 0.0) {
-      fLength = sqrt(std::min(width()/2, height()/2) - fNewVecZ);
+      fLength = sqrt(1.0 - fNewVecZ);
       fNewVecZ  = 0.0;
       fNewVecX /= fLength;
       fNewVecY /= fLength;
@@ -217,14 +225,14 @@ void Viewer::vCalcRotVec(float fNewX, float fNewY,
     */
    fOldVecX    = fOldX * 2.0 / fDiameter;
    fOldVecY    = fOldY * 2.0 / fDiameter;
-   fOldVecZ    = (std::min(width()/2, height()/2) - fOldVecX * fOldVecX - fOldVecY * fOldVecY);
+   fOldVecZ    = (1.0 - fOldVecX * fOldVecX - fOldVecY * fOldVecY);
  
    /* If the Z component is less than 0, the mouse point
     * falls outside of the trackball which is interpreted
     * as rotation about the Z axis.
     */
    if (fOldVecZ < 0.0) {
-      fLength = sqrt(std::min(width()/2, height()/2) - fOldVecZ);
+      fLength = sqrt(1.0 - fOldVecZ);
       fOldVecZ  = 0.0;
       fOldVecX /= fLength;
       fOldVecY /= fLength;
@@ -245,6 +253,56 @@ void Viewer::vCalcRotVec(float fNewX, float fNewY,
    *fVecY = fOldVecZ * fNewVecX - fNewVecZ * fOldVecX;
    *fVecZ = fOldVecX * fNewVecY - fNewVecX * fOldVecY;
 }
+
+void Viewer::vAxisRotMatrix(float fVecX, float fVecY, float fVecZ, QMatrix4x4 &mNewMat) 
+{
+
+    float fRadians, fInvLength, fNewVecX, fNewVecY, fNewVecZ;
+
+    /* Find the length of the vector which is the angle of rotation
+     * (in radians)
+     */
+    fRadians = sqrt(fVecX * fVecX + fVecY * fVecY + fVecZ * fVecZ);
+
+    /* If the vector has zero length - return the identity matrix */
+    if (fRadians > -0.000001 && fRadians < 0.000001) {
+		mNewMat.setToIdentity();
+        return;
+    }
+
+    /* Normalize the rotation vector now in preparation for making
+     * rotation matrix. 
+     */
+    fInvLength = 1 / fRadians;
+    fNewVecX   = fVecX * fInvLength;
+    fNewVecY   = fVecY * fInvLength;
+    fNewVecZ   = fVecZ * fInvLength;
+
+    /* Create the arbitrary axis rotation matrix */
+    double dSinAlpha = sin(fRadians);
+    double dCosAlpha = cos(fRadians);
+    double dT = 1 - dCosAlpha;
+
+	mNewMat.setColumn(0, QVector4D( 
+		dCosAlpha + fNewVecX*fNewVecX*dT,
+		fNewVecX*fNewVecY*dT + fNewVecZ*dSinAlpha,
+		fNewVecX*fNewVecZ*dT - fNewVecY*dSinAlpha,
+		0));
+
+	mNewMat.setColumn(1, QVector4D(
+		fNewVecX*fNewVecY*dT - dSinAlpha*fNewVecZ,
+		dCosAlpha + fNewVecY*fNewVecY*dT,
+		fNewVecY*fNewVecZ*dT + dSinAlpha*fNewVecX,
+		0));
+
+	mNewMat.setColumn(2, QVector4D(
+		fNewVecZ*fNewVecX*dT + dSinAlpha*fNewVecY,
+		fNewVecZ*fNewVecY*dT - dSinAlpha*fNewVecX,
+		dCosAlpha + fNewVecZ*fNewVecZ*dT,
+		0));
+
+	mNewMat.setColumn(3, QVector4D( 0, 0, 0, 1));
+}	
 
 void Viewer::createSphereGeometry() {
 
@@ -433,7 +491,6 @@ void Viewer::draw_sphere()
 	// mProgram.setUniformValue(mMvpMatrixLocation, getCameraMatrix());
 	// Draw buffer 
 	// glDrawArrays(GL_TRIANGLES, 0, 20 * 4 * 4 * 3);
-	std::cerr<< "Before walk_gl" << std::endl;
 	root->set_shader_program(&mProgram);
 	root->set_parent_transform(getCameraMatrix());
 	root->walk_gl();	

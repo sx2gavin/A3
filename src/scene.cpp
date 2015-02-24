@@ -12,7 +12,6 @@ SceneNode::~SceneNode()
 
 void SceneNode::walk_gl(bool picking) const
 {
-  std::cerr << "SceneNode walk_gl" << m_name << std::endl; 
   for (std::list<SceneNode*>::const_iterator it = m_children.begin(); it != m_children.end(); ++it) {
 	  (*it)->set_shader_program(mProgram);
 	  (*it)->set_parent_transform(m_parent_trans * m_trans);
