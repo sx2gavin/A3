@@ -125,6 +125,8 @@ void Viewer::initializeGL() {
 
     mMvpMatrixLocation = mProgram.uniformLocation("mvpMatrix");
     mColorLocation = mProgram.uniformLocation("frag_color");
+	mLightLocation = mProgram.uniformLocation("light_source");
+
 }
 
 void Viewer::paintGL() {
@@ -132,10 +134,14 @@ void Viewer::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Set up lighting
+	
+	QVector3D light(0.0, 0.0, 20.0); 
+
+	mProgram.setUniformValue(mLightLocation, light);
 
     // Draw stuff
 	
-	draw_sphere();
+	draw_scene();
     draw_trackball_circle();
 
 }
@@ -380,6 +386,18 @@ void Viewer::createSphereGeometry() {
     }
 
 	mSphereBufferObject.allocate(sphereVertices.constData(), sphereVertices.size() * sizeof(float));
+	
+
+	mSphereNormalBufferObject.create();
+	mSphereNormalBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
+
+	if (!mSphereNormalBufferObject.bind()) {
+        std::cerr << "could not bind sphere normal buffer object to the context." << std::endl;
+        return;
+	}
+		
+	mSphereNormalBufferObject.allocate(sphereVertices.constData(), sphereVertices.size() * sizeof(float));
+
 }
 
 
@@ -479,7 +497,7 @@ void Viewer::draw_trackball_circle()
     glDrawArrays(GL_LINE_LOOP, 0, 40);    
 }
 
-void Viewer::draw_sphere()
+void Viewer::draw_scene()
 {
 	set_colour(QColor(1.0, 0.0, 0.0));
 	mSphereBufferObject.bind();
@@ -487,6 +505,12 @@ void Viewer::draw_sphere()
     mProgram.bind();
 	mProgram.enableAttributeArray("vert");
 	mProgram.setAttributeBuffer("vert", GL_FLOAT, 0, 3);
+
+	mSphereNormalBufferObject.bind();
+
+	mProgram.bind();
+	mProgram.enableAttributeArray("normal");
+	mProgram.setAttributeBuffer("normal", GL_FLOAT, 0, 3);
 
 	// mProgram.setUniformValue(mMvpMatrixLocation, getCameraMatrix());
 	// Draw buffer 

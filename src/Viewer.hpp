@@ -60,7 +60,7 @@ private:
 	void addTriangle(QVector<float> *sphereVertices, QVector3D point_1, QVector3D point_2, QVector3D point_3);
 	QVector3D getMiddlePoint(QVector3D point_1, QVector3D point_2);
 	void createSphereGeometry();
-	void draw_sphere();
+	void draw_scene();
 
     QMatrix4x4 getCameraMatrix();
     void translateWorld(float x, float y, float z);
@@ -76,14 +76,17 @@ private:
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
     QOpenGLBuffer mCircleBufferObject;
 	QOpenGLBuffer mSphereBufferObject;
+	QOpenGLBuffer mSphereNormalBufferObject;
     QOpenGLVertexArrayObject mVertexArrayObject;
 #else 
     QGLBuffer mCircleBufferObject;
 	QGLBuffer mSphereBufferObject;
+	QGLBuffer mSphereNormalBufferObject;
 #endif
     
     int mMvpMatrixLocation;
     int mColorLocation;
+	int mLightLocation;
 
     QMatrix4x4 mPerspMatrix;
     QMatrix4x4 mTransformMatrix;
