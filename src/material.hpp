@@ -2,16 +2,21 @@
 #define CS488_MATERIAL_HPP
 
 #include "algebra.hpp"
+#include <QColor>
+#include <QGLShaderProgram>
 
 class Material {
 public:
   virtual ~Material();
   virtual void apply_gl() const = 0;
+  void set_shader_program(QGLShaderProgram *program);
 
 protected:
   Material()
   {
   }
+
+  QGLShaderProgram *mProgram;
 };
 
 class PhongMaterial : public Material {
@@ -22,8 +27,8 @@ public:
   virtual void apply_gl() const;
 
 private:
-  Colour m_kd;
-  Colour m_ks;
+  QColor m_kd;
+  QColor m_ks;
 
   double m_shininess;
 };
