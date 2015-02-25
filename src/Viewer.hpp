@@ -84,11 +84,14 @@ private:
 	QGLBuffer mSphereNormalBufferObject;
 #endif
     
-    int mMvpMatrixLocation;
+    int mPerspMLocation;
     int mColorLocation;
 	int mLightLocation;
+	int mModelMLocation;
+	int mViewMLocation;
 
     QMatrix4x4 mPerspMatrix;
+	QMatrix4x4 mViewMatrix;
     QMatrix4x4 mTransformMatrix;
     QGLShaderProgram mProgram;
 	

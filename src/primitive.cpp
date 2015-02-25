@@ -1,6 +1,7 @@
 #include "primitive.hpp"
 #include <cmath>
 #include <QtOpenGL>
+#include <iostream>
 
 Primitive::~Primitive()
 {
@@ -22,7 +23,7 @@ void Primitive::set_transformation(QMatrix4x4 matrix)
 
 void Sphere::walk_gl(bool picking) const
 {
-	int mMvpMatrixLocation = mProgram->uniformLocation("mvpMatrix"); 
-	mProgram->setUniformValue(mMvpMatrixLocation, mTransformMatrix); 
+	int mModelMLocation = mProgram->uniformLocation("mMatrix"); 
+	mProgram->setUniformValue(mModelMLocation, mTransformMatrix); 
 	glDrawArrays(GL_TRIANGLES, 0, 20 * 4 * 4 * 3);
 }

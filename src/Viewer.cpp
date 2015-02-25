@@ -86,6 +86,12 @@ void Viewer::initializeGL() {
 
     mCircleBufferObject.create();
     mCircleBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
+
+	mSphereBufferObject.create();
+	mSphereBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
+
+	mSphereNormalBufferObject.create();
+	mSphereNormalBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
 #else 
     /*
      * if qt version is less than 5.1, use the following commented code
@@ -108,6 +114,12 @@ void Viewer::initializeGL() {
 
     mCircleBufferObject.create();
     mCircleBufferObject.setUsagePattern(QGLBuffer::StaticDraw);
+
+	mSphereBufferObject.create();
+	mSphereBufferObject.setUsagePattern(QGLBuffer::StaticDraw);
+
+	mSphereNormalBufferObject.create();
+	mSphereNormalBufferObject.setUsagePattern(QGLBuffer::StaticDraw);
 #endif
 
     if (!mCircleBufferObject.bind()) {
@@ -123,9 +135,12 @@ void Viewer::initializeGL() {
     // mProgram.enableAttributeArray("vert");
     // mProgram.setAttributeBuffer("vert", GL_FLOAT, 0, 3);
 
-    mMvpMatrixLocation = mProgram.uniformLocation("mvpMatrix");
+    mPerspMLocation = mProgram.uniformLocation("pMatrix");
     mColorLocation = mProgram.uniformLocation("frag_color");
 	mLightLocation = mProgram.uniformLocation("light_source");
+	mModelMLocation = mProgram.uniformLocation("mMatrix");
+	mViewMLocation = mProgram.uniformLocation("vMatrix");
+
 
 }
 
@@ -138,6 +153,8 @@ void Viewer::paintGL() {
 	QVector3D light(0.0, 0.0, 20.0); 
 
 	mProgram.setUniformValue(mLightLocation, light);
+	mProgram.setUniformValue(mViewMLocation, mViewMatrix);
+	mProgram.setUniformValue(mPerspMLocation, mPerspMatrix);
 
     // Draw stuff
 	
@@ -154,6 +171,11 @@ void Viewer::resizeGL(int width, int height) {
     mPerspMatrix.setToIdentity();
     mPerspMatrix.perspective(30.0, (float) width / (float) height, 0.001, 1000);
 
+	mViewMatrix.setToIdentity();
+    QVector3D cameraPosition = QVector3D(0, 0, 20.0);
+    QVector3D cameraUpDirection = QVector3D(0, 1, 0);
+    mViewMatrix.lookAt(cameraPosition, QVector3D(0, 0, 0), cameraUpDirection);
+
     glViewport(0, 0, width, height);
 }
 
@@ -169,10 +191,11 @@ void Viewer::mouseReleaseEvent ( QMouseEvent * event ) {
 
 void Viewer::mouseMoveEvent ( QMouseEvent * event ) {
     std::cerr << "Stub: Motion at " << event->x() << ", " << event->y() << std::endl;
+	QMatrix4x4 transformMat;
 	if (pressedMouseButton == Qt::LeftButton) {
-		translateWorld((event->x()-prePos.x()) / 100.0, (prePos.y()-event->y()) / 100.0, 0.0);
+		transformMat.translate((event->x()-prePos.x()) / 100.0, (prePos.y()-event->y()) / 100.0, 0.0);
 	} else if (pressedMouseButton == Qt::MidButton) {
-		translateWorld(0.0, 0.0, (prePos.y() - event->y())/100.0);
+		transformMat.translate(0.0, 0.0, (prePos.y() - event->y())/100.0);
 	} else if (pressedMouseButton == Qt::RightButton) {
 		float fVecX;
 		float fVecY;
@@ -186,10 +209,9 @@ void Viewer::mouseMoveEvent ( QMouseEvent * event ) {
 					&fVecX, &fVecY, &fVecZ); 
 
 		std::cerr << "x = " << fVecX << "; y= " << fVecY << "; z=" << fVecZ<< std::endl;
-		vAxisRotMatrix(fVecX, fVecY, fVecZ, rotationMat); 
-		mTransformMatrix = mTransformMatrix * rotationMat;
+		vAxisRotMatrix(fVecX, fVecY, fVecZ, transformMat); 
 	}
-
+	mTransformMatrix = transformMat * mTransformMatrix;
 	prePos.setX(event->x());
 	prePos.setY(event->y());
 
@@ -377,19 +399,13 @@ void Viewer::createSphereGeometry() {
 		sphereVertices = newSphereVertices;
 	}
 
-	mSphereBufferObject.create();
-    mSphereBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
-
     if (!mSphereBufferObject.bind()) {
         std::cerr << "could not bind vertex buffer to the context." << std::endl;
         return;
     }
 
 	mSphereBufferObject.allocate(sphereVertices.constData(), sphereVertices.size() * sizeof(float));
-	
 
-	mSphereNormalBufferObject.create();
-	mSphereNormalBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
 
 	if (!mSphereNormalBufferObject.bind()) {
         std::cerr << "could not bind sphere normal buffer object to the context." << std::endl;
@@ -432,16 +448,7 @@ QVector3D Viewer::getMiddlePoint(QVector3D point_1, QVector3D point_2) {
 	return middle;
 }
 QMatrix4x4 Viewer::getCameraMatrix() {
-    // Todo: Ask if we want to keep this.
-    QMatrix4x4 vMatrix;
-
-    QMatrix4x4 cameraTransformation;
-    QVector3D cameraPosition = cameraTransformation * QVector3D(0, 0, 20.0);
-    QVector3D cameraUpDirection = cameraTransformation * QVector3D(0, 1, 0);
-
-    vMatrix.lookAt(cameraPosition, QVector3D(0, 0, 0), cameraUpDirection);
-
-    return mPerspMatrix * vMatrix * mTransformMatrix;
+    return mPerspMatrix * mViewMatrix * mTransformMatrix;
 }
 
 void Viewer::translateWorld(float x, float y, float z) {
@@ -477,6 +484,7 @@ void Viewer::draw_trackball_circle()
 
     // Set orthographic Matrix
     QMatrix4x4 orthoMatrix;
+	QMatrix4x4 viewMatrix;
     orthoMatrix.ortho(0.0, (float)current_width, 
            0.0, (float)current_height, -0.1, 0.1);
 
@@ -491,7 +499,9 @@ void Viewer::draw_trackball_circle()
     mProgram.enableAttributeArray("vert");
     mProgram.setAttributeBuffer("vert", GL_FLOAT, 0, 3);
 
-    mProgram.setUniformValue(mMvpMatrixLocation, orthoMatrix * transformMatrix);
+    mProgram.setUniformValue(mPerspMLocation, orthoMatrix);
+	mProgram.setUniformValue(mViewMLocation, viewMatrix);
+	mProgram.setUniformValue(mModelMLocation, transformMatrix);
 
     // Draw buffer
     glDrawArrays(GL_LINE_LOOP, 0, 40);    
@@ -516,6 +526,6 @@ void Viewer::draw_scene()
 	// Draw buffer 
 	// glDrawArrays(GL_TRIANGLES, 0, 20 * 4 * 4 * 3);
 	root->set_shader_program(&mProgram);
-	root->set_parent_transform(getCameraMatrix());
+	root->set_parent_transform(mTransformMatrix);
 	root->walk_gl();	
 }
