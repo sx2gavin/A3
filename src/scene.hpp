@@ -49,6 +49,7 @@ public:
   }
 
   virtual void set_joint(const float angle, const QVector3D axis);
+  virtual void reset_joint();
 
   void set_shader_program(QGLShaderProgram *program);
 
@@ -83,7 +84,6 @@ protected:
   QMatrix4x4 m_trans;
   QMatrix4x4 m_invtrans;
   QMatrix4x4 m_scale;
-  QMatrix4x4 m_joint;
   float jointAngle;
   QVector3D jointAxis;
 
@@ -109,6 +109,7 @@ public:
 
   virtual bool is_joint() const;
   virtual void set_joint(const float jointAngle, const QVector3D jointAxis);
+  virtual void reset_joint();
 
   void set_joint_x(double min, double init, double max);
   void set_joint_y(double min, double init, double max);
@@ -120,6 +121,7 @@ public:
   
 protected:
   JointRange m_joint_x, m_joint_y;
+  QMatrix4x4 m_joint;
 };
 
 class GeometryNode : public SceneNode {

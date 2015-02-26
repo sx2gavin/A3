@@ -32,6 +32,13 @@ void SceneNode::set_joint(const float jointAngle, const QVector3D jointAxis)
 	this->jointAxis = jointAxis;
 }
 
+void SceneNode::reset_joint() {
+
+  for (std::list<SceneNode*>::const_iterator it = m_children.begin(); it != m_children.end(); ++it) {
+	  (*it)->reset_joint();
+  }	  
+}
+
 
 void SceneNode::rotate(char axis, double angle)
 {
@@ -82,7 +89,7 @@ void JointNode::walk_gl(bool picking) const
   for (std::list<SceneNode*>::const_iterator it = m_children.begin(); it != m_children.end(); ++it) {
 	  (*it)->set_picked(picked);
 	  (*it)->set_shader_program(mProgram);
-	  (*it)->set_parent_transform(m_parent_trans * m_trans);
+	  (*it)->set_parent_transform(m_parent_trans * m_trans * m_joint);
 	  (*it)->set_picked_names(pickedNames);
 	  (*it)->set_joint(jointAngle, jointAxis);
       (*it)->walk_gl(picking);
@@ -118,12 +125,17 @@ void JointNode::set_joint(const float angle, const QVector3D axis)
 				m_joint_y.init+=jointAngle;
 				std::cerr << "y min= " << m_joint_y.min << ", y init= " << m_joint_y.init << ", y max= " << m_joint_y.max << std::endl;
 			}	
-			m_trans.rotate(jointAngle, jointAxis);
+			m_joint.rotate(jointAngle, jointAxis);
 			picked = true;
 			return;
 		}
 	}
 	picked = false;
+}
+
+void JointNode::reset_joint() {
+	m_joint.setToIdentity();
+	SceneNode::reset_joint();
 }
 
 void JointNode::set_joint_x(double min, double init, double max)

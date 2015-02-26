@@ -25,18 +25,37 @@ void AppWindow::setSceneNode(SceneNode* node) {
 }	
 
 void AppWindow::createActions() {
-    // Creates a new action for quiting and pushes it onto the menu actions vector 
+
+	// Application menu
+    QAction* reset_pos_act = new QAction(tr("&Reset Position"), this);
+    m_menu_app_actions.push_back(reset_pos_act);
+    reset_pos_act->setShortcut(Qt::Key_I);
+    reset_pos_act->setStatusTip(tr("Reset position"));
+    connect(reset_pos_act, SIGNAL(triggered()), this, SLOT(app_reset_position()));
+
+    QAction* reset_orient_act = new QAction(tr("&Reset Orientation"), this);
+    m_menu_app_actions.push_back(reset_orient_act);
+    reset_orient_act->setShortcut(Qt::Key_O);
+    reset_orient_act->setStatusTip(tr("Reset Orientation"));
+    connect(reset_orient_act, SIGNAL(triggered()), this, SLOT(app_reset_orientation()));
+
+    QAction* reset_joints_act = new QAction(tr("&Reset Joints"), this);
+    m_menu_app_actions.push_back(reset_joints_act);
+    reset_joints_act->setShortcut(Qt::Key_N);
+    reset_joints_act->setStatusTip(tr("Reset Joints"));
+    connect(reset_joints_act, SIGNAL(triggered()), this, SLOT(app_reset_joints()));
+
+    QAction* reset_all_act = new QAction(tr("&Reset All"), this);
+    m_menu_app_actions.push_back(reset_all_act);
+    reset_all_act->setShortcut(Qt::Key_A);
+    reset_all_act->setStatusTip(tr("Reset All"));
+    connect(reset_all_act, SIGNAL(triggered()), this, SLOT(app_reset_all()));
+
+	// Quit
     QAction* quitAct = new QAction(tr("&Quit"), this);
     m_menu_app_actions.push_back(quitAct);
-
-    // We set the accelerator keys
-    // Alternatively, you could use: setShortcuts(Qt::CTRL + Qt::Key_P); 
     quitAct->setShortcuts(QKeySequence::Quit);
-
-    // Set the tip
     quitAct->setStatusTip(tr("Exits the file"));
-
-    // Connect the action with the signal and slot designated
     connect(quitAct, SIGNAL(triggered()), this, SLOT(close()));
 
 	
@@ -277,3 +296,26 @@ void AppWindow::option_frontface()
 {
 	m_viewer->toggleFrontfaceCull();
 }
+
+
+void AppWindow::app_reset_position()
+{
+	m_viewer->resetPosition();
+}
+
+void AppWindow::app_reset_orientation()
+{
+	m_viewer->resetOrientation();
+}
+
+void AppWindow::app_reset_joints()
+{
+	m_viewer->resetJoints();
+}
+
+void AppWindow::app_reset_all()
+{
+	m_viewer->resetAll();
+}
+
+

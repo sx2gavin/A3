@@ -261,7 +261,7 @@ void Viewer::mouseMoveEvent ( QMouseEvent * event ) {
 						&fVecX, &fVecY, &fVecZ); 
 
 			vAxisRotMatrix(fVecX, fVecY, fVecZ, transformMat); 
-			mTransformMatrix = transformMat * mTransformMatrix;
+			mOrientationMatrix = transformMat * mOrientationMatrix;
 		}
 	} else if (mode == JOINTS) {
 		if (pressedMouseButton == Qt::MidButton) {
@@ -591,7 +591,7 @@ void Viewer::draw_scene()
 	// Draw buffer 
 	// glDrawArrays(GL_TRIANGLES, 0, 20 * 4 * 4 * 3);
 	root->set_shader_program(&mProgram);
-	root->set_parent_transform(mTransformMatrix);
+	root->set_parent_transform(mTransformMatrix * mOrientationMatrix);
 	if (mode == POSITION_ORIENTATION){
 	   jointAngle = 0;
 	}	   

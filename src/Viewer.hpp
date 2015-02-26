@@ -35,6 +35,16 @@ public:
 	void toggleZbuffer() { b_z_buffer = !b_z_buffer; update();}
 	void toggleBackfaceCull() { b_back_face_cull = !b_back_face_cull; update();}
 	void toggleFrontfaceCull() { b_front_face_cull = !b_front_face_cull;update();}
+	void resetPosition() { mTransformMatrix.setToIdentity(); update(); }
+	void resetOrientation() { mOrientationMatrix.setToIdentity(); update(); }
+	void resetJoints() {root->reset_joint(); update();}
+	void resetAll()
+	{
+		resetPosition();
+		resetOrientation();
+		resetJoints();
+		update();
+	}
 	
 
     // If you want to render a new frame, call do not call paintGL(),
@@ -106,6 +116,7 @@ private:
     QMatrix4x4 mPerspMatrix;
 	QMatrix4x4 mViewMatrix;
     QMatrix4x4 mTransformMatrix;
+	QMatrix4x4 mOrientationMatrix;
 	QVector3D jointAxis;
 	float jointAngle; 
     QGLShaderProgram mProgram;

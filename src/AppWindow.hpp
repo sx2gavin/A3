@@ -41,7 +41,10 @@ private slots :
 	void option_backface();
 	void option_frontface();
 
-
+	void app_reset_position();
+	void app_reset_orientation();
+	void app_reset_joints();
+	void app_reset_all();
 
 private:
     void createActions();
