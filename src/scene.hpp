@@ -18,6 +18,7 @@ public:
 
   const QMatrix4x4& get_transform() const { return m_trans; }
   const QMatrix4x4& get_inverse() const { return m_invtrans; }
+  const QMatrix4x4& get_scale() const { return m_scale; }
   
   void set_transform(const QMatrix4x4& m)
   {
@@ -67,6 +68,7 @@ protected:
   // Transformations
   QMatrix4x4 m_trans;
   QMatrix4x4 m_invtrans;
+  QMatrix4x4 m_scale;
 
   // Whole Transformation 
   QMatrix4x4 m_parent_trans;

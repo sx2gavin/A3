@@ -27,6 +27,7 @@ void SceneNode::rotate(char axis, double angle)
 {
 	std::cerr << "Stub: Rotate " << m_name << " around " << axis << " by " << angle << std::endl;
 	QVector3D _axis;
+	QMatrix4x4 mat;
 	if (axis == 'x') {
 		_axis = QVector3D( 1.0, 0.0, 0.0);
 	} else if (axis == 'y') {
@@ -34,19 +35,22 @@ void SceneNode::rotate(char axis, double angle)
 	} else if (axis == 'z') {
 		_axis = QVector3D( 0.0, 0.0, 1.0);
 	}
-	m_trans.rotate(angle, _axis); 
+	mat.rotate(angle, _axis); 
+	m_trans = m_trans * mat;
 }
 
 void SceneNode::scale(const Vector3D& amount)
 {
   std::cerr << "Stub: Scale " << m_name << " by " << amount << std::endl;
-  m_trans.scale(amount[0], amount[1], amount[2]);
+  m_scale.scale(amount[0], amount[1], amount[2]);
 }
 
 void SceneNode::translate(const Vector3D& amount)
 {
   std::cerr << "Stub: Translate " << m_name << " by " << amount << std::endl;
-  m_trans.translate(amount[0], amount[1], amount[2]);
+  QMatrix4x4 mat;
+  mat.translate(amount[0], amount[1], amount[2]);
+  m_trans = m_trans * mat;
 }
 
 bool SceneNode::is_joint() const
@@ -103,7 +107,7 @@ void GeometryNode::walk_gl(bool picking) const
 	m_material->apply_gl();	
 	m_primitive->set_shader_program(mProgram);
 	m_primitive->set_transformation(m_parent_trans * m_trans);
-	std::cerr << "Painting sphere " << m_name << std::endl;
+	m_primitive->set_scale(m_scale);
 	m_primitive->walk_gl(picking);
 	
 	SceneNode::walk_gl(picking);

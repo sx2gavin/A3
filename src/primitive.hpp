@@ -11,9 +11,11 @@ public:
   virtual void walk_gl(bool picking) const = 0;
   void set_shader_program(QGLShaderProgram *program);
   void set_transformation(QMatrix4x4 matrix);
+  void set_scale(QMatrix4x4 scale);
 protected:
   QGLShaderProgram *mProgram;
   QMatrix4x4 mTransformMatrix;
+  QMatrix4x4 mScaleMatrix;
 };
 
 class Sphere : public Primitive {

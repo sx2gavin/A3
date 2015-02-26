@@ -490,6 +490,8 @@ void Viewer::draw_trackball_circle()
 
     // Translate the view to the middle
     QMatrix4x4 transformMatrix;
+	QMatrix4x4 scale;
+	int mScaleLocation = mProgram.uniformLocation("scaleMatrix");
     transformMatrix.translate(width()/2.0, height()/2.0, 0.0);
 
     // Bind buffer object
@@ -502,6 +504,7 @@ void Viewer::draw_trackball_circle()
     mProgram.setUniformValue(mPerspMLocation, orthoMatrix);
 	mProgram.setUniformValue(mViewMLocation, viewMatrix);
 	mProgram.setUniformValue(mModelMLocation, transformMatrix);
+	mProgram.setUniformValue(mScaleLocation, scale);
 
     // Draw buffer
     glDrawArrays(GL_LINE_LOOP, 0, 40);    
