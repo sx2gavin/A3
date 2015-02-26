@@ -7,6 +7,7 @@
 #include <QVector4D>
 #include <QtGlobal>
 #include "scene.hpp"
+#include <string>
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
 #include <QOpenGLBuffer>
@@ -15,12 +16,12 @@
 #include <QGLBuffer>
 #endif
 
+enum Mode {POSITION_ORIENTATION, JOINTS};
 class Viewer : public QGLWidget {
     
     Q_OBJECT
 
 public:
-	enum Mode {POSITION_ORIENTATION, JOINTS};
     Viewer(const QGLFormat& format, QWidget *parent = 0);
     virtual ~Viewer();
     
@@ -28,6 +29,11 @@ public:
     QSize sizeHint() const;
 
 	void setSceneNode(SceneNode* node);
+	void togglePickedName(std::string name);
+	void setMode(Mode mode) 
+	{
+		this->mode = mode;
+	}
 
     // If you want to render a new frame, call do not call paintGL(),
     // instead, call update() to ensure that the view gets a paint 
@@ -98,6 +104,7 @@ private:
     QMatrix4x4 mPerspMatrix;
 	QMatrix4x4 mViewMatrix;
     QMatrix4x4 mTransformMatrix;
+	QMatrix4x4 mJointTransformation;
     QGLShaderProgram mProgram;
 	
 	// sphere
@@ -110,6 +117,9 @@ private:
 
 	// Scene
 	SceneNode* root;	
+	
+	QVector<std::string> pickedNames;
+	Mode mode;
 };
 
 #endif

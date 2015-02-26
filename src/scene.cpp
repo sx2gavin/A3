@@ -15,6 +15,8 @@ void SceneNode::walk_gl(bool picking) const
   for (std::list<SceneNode*>::const_iterator it = m_children.begin(); it != m_children.end(); ++it) {
 	  (*it)->set_shader_program(mProgram);
 	  (*it)->set_parent_transform(m_parent_trans * m_trans);
+	  (*it)->set_picked_names(pickedNames);
+	  (*it)->set_joint_transform(m_joint);
       (*it)->walk_gl(picking);
   }	  
 }

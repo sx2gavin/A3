@@ -19,9 +19,10 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
 #endif
 {
 	sphereQuality = 2; // recursionlevel of refining the sphere.
-	b_z_buffer = false;
+	b_z_buffer = true;
 	b_back_face_cull = false;
 	b_front_face_cull = false;
+	mode = JOINTS;
 }
 
 Viewer::~Viewer() {
@@ -43,6 +44,17 @@ void Viewer::setSceneNode(SceneNode* node) {
 		std::cerr << "ERROR: root is NULL" << std::endl;
 	}
 }
+
+void Viewer::togglePickedName(std::string name)
+{
+	for (int i = 0; i < pickedNames.size(); i++) {
+		if (pickedNames[i] == name) {
+			pickedNames.remove(i);
+			return;
+		}
+	}
+	pickedNames.push_back(name);
+}	
 
 void Viewer::initializeGL() {
     QGLFormat glFormat = QGLWidget::format();
@@ -218,38 +230,42 @@ void Viewer::mousePressEvent ( QMouseEvent * event ) {
 }
 
 void Viewer::mouseReleaseEvent ( QMouseEvent * event ) {
-    std::cerr << "Stub: button " << event->button() << " released\n";
-
-	if (event->button() == Qt::LeftButton) {
-		unsigned char data[4];
-		glReadPixels(event->x(), event->y(), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		std::cerr << (int)data[0] << ", " << (int)data[1] << ", " << (int)data[2] << ", " << (int)data[3] << std::endl;
-	}
+    std::cerr << "Stub: button " << event->button() << " released\n";	
 }
 
 void Viewer::mouseMoveEvent ( QMouseEvent * event ) {
     std::cerr << "Stub: Motion at " << event->x() << ", " << event->y() << std::endl;
 	QMatrix4x4 transformMat;
-	if (pressedMouseButton == Qt::LeftButton) {
-		transformMat.translate((event->x()-prePos.x()) / 100.0, (prePos.y()-event->y()) / 100.0, 0.0);
-		mTransformMatrix = transformMat * mTransformMatrix;
-	} else if (pressedMouseButton == Qt::MidButton) {
-		transformMat.translate(0.0, 0.0, (event->y() - prePos.y())/100.0);
-		mTransformMatrix = transformMat * mTransformMatrix;
-	} else if (pressedMouseButton == Qt::RightButton) {
-		float fVecX;
-		float fVecY;
-		float fVecZ;
-		QMatrix4x4 rotationMat;
-		vCalcRotVec((float)event->x() - width() / 2,  
-					height() / 2 - (float)event->y(), 
-					(float)prePos.x() - width() / 2,  
-					height() / 2 - (float)prePos.y(), 
-					(float)diameter, 
-					&fVecX, &fVecY, &fVecZ); 
+	if (mode == POSITION_ORIENTATION) {
+		if (pressedMouseButton == Qt::LeftButton) {
+			transformMat.translate((event->x()-prePos.x()) / 100.0, (prePos.y()-event->y()) / 100.0, 0.0);
+			mTransformMatrix = transformMat * mTransformMatrix;
+		} else if (pressedMouseButton == Qt::MidButton) {
+			transformMat.translate(0.0, 0.0, (event->y() - prePos.y())/100.0);
+			mTransformMatrix = transformMat * mTransformMatrix;
+		} else if (pressedMouseButton == Qt::RightButton) {
+			float fVecX;
+			float fVecY;
+			float fVecZ;
+			QMatrix4x4 rotationMat;
+			vCalcRotVec((float)event->x() - width() / 2,  
+						height() / 2 - (float)event->y(), 
+						(float)prePos.x() - width() / 2,  
+						height() / 2 - (float)prePos.y(), 
+						(float)diameter, 
+						&fVecX, &fVecY, &fVecZ); 
 
-		vAxisRotMatrix(fVecX, fVecY, fVecZ, transformMat); 
-		mTransformMatrix = mTransformMatrix * transformMat;
+			vAxisRotMatrix(fVecX, fVecY, fVecZ, transformMat); 
+			mTransformMatrix = transformMat * mTransformMatrix;
+		}
+	} else if (mode == JOINTS) {
+		mJointTransformation.setToIdentity();
+		if (pressedMouseButton == Qt::MidButton) {
+			mJointTransformation.rotate((event->y() - prePos.y())/10.0, QVector3D(0.0, 1.0, 0.0));
+		} else if (pressedMouseButton == Qt::RightButton) {
+				
+			mJointTransformation.rotate((event->x() - prePos.x())/10.0, QVector3D(1.0, 0.0, 0.0));
+		}
 	}
 	prePos.setX(event->x());
 	prePos.setY(event->y());
@@ -569,5 +585,7 @@ void Viewer::draw_scene()
 	// glDrawArrays(GL_TRIANGLES, 0, 20 * 4 * 4 * 3);
 	root->set_shader_program(&mProgram);
 	root->set_parent_transform(mTransformMatrix);
-	root->walk_gl();	
+	root->set_picked_names(pickedNames);
+	root->set_joint_transform(mJointTransformation);
+	root->walk_gl(true);	
 }

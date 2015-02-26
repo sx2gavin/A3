@@ -38,6 +38,22 @@ public:
 	m_parent_invtrans = m.inverted();
   }
 
+  void set_picked_names(const QVector<std::string> picked)
+  {
+	pickedNames = picked;
+  }
+
+  void set_joint_transform(const QMatrix4x4& m)
+  {
+	m_joint = m;
+	for (int i = 0; i < pickedNames.size(); i++) {
+		if (m_name == pickedNames[i]) {
+			m_trans = m_trans * m;
+			break;
+		}
+	}
+  }
+
   void set_shader_program(QGLShaderProgram *program);
 
   void add_child(SceneNode* child)
@@ -64,11 +80,13 @@ protected:
   // Useful for picking
   int m_id;
   std::string m_name;
+  QVector<std::string> pickedNames; 
 
   // Transformations
   QMatrix4x4 m_trans;
   QMatrix4x4 m_invtrans;
   QMatrix4x4 m_scale;
+  QMatrix4x4 m_joint;
 
   // Whole Transformation 
   QMatrix4x4 m_parent_trans;
@@ -101,7 +119,6 @@ public:
 
   
 protected:
-
   JointRange m_joint_x, m_joint_y;
 };
 
