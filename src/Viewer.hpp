@@ -125,7 +125,7 @@ private:
 	int sphereQuality;
 
 	// mouse
-	Qt::MouseButton pressedMouseButton;
+	Qt::MouseButtons pressedMouseButton;
 	QVector2D prePos;
 	double diameter;
 

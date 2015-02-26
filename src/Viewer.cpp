@@ -229,7 +229,7 @@ void Viewer::resizeGL(int width, int height) {
 
 void Viewer::mousePressEvent ( QMouseEvent * event ) {
     std::cerr << "Stub: button " << event->button() << " pressed\n";
-	pressedMouseButton = event->button();
+	pressedMouseButton = event->buttons();
 	prePos = QVector2D(event->x(), event->y());
 
 }
@@ -242,13 +242,13 @@ void Viewer::mouseMoveEvent ( QMouseEvent * event ) {
     std::cerr << "Stub: Motion at " << event->x() << ", " << event->y() << std::endl;
 	QMatrix4x4 transformMat;
 	if (mode == POSITION_ORIENTATION) {
-		if (pressedMouseButton == Qt::LeftButton) {
+		if (pressedMouseButton & Qt::LeftButton) {
 			transformMat.translate((event->x()-prePos.x()) / 100.0, (prePos.y()-event->y()) / 100.0, 0.0);
 			mTransformMatrix = transformMat * mTransformMatrix;
-		} else if (pressedMouseButton == Qt::MidButton) {
+		} else if (pressedMouseButton & Qt::MidButton) {
 			transformMat.translate(0.0, 0.0, (event->y() - prePos.y())/100.0);
 			mTransformMatrix = transformMat * mTransformMatrix;
-		} else if (pressedMouseButton == Qt::RightButton) {
+		} else if (pressedMouseButton & Qt::RightButton) {
 			float fVecX;
 			float fVecY;
 			float fVecZ;
@@ -264,11 +264,12 @@ void Viewer::mouseMoveEvent ( QMouseEvent * event ) {
 			mOrientationMatrix = transformMat * mOrientationMatrix;
 		}
 	} else if (mode == JOINTS) {
-		if (pressedMouseButton == Qt::MidButton) {
+		if (pressedMouseButton & Qt::MidButton) {
 			jointAxis =  QVector3D(0.0, 1.0, 0.0);
 			jointAngle = (event->y() - prePos.y())/10.0;
 			// mJointTransformation.rotate((event->y() - prePos.y())/10.0, QVector3D(0.0, 1.0, 0.0));
-		} else if (pressedMouseButton == Qt::RightButton) {
+		} 
+		if (pressedMouseButton & Qt::RightButton) {
 			jointAxis = QVector3D(-1.0, 0.0, 0.0);
 			jointAngle = (event->x() - prePos.x())/10.0;
 			// mJointTransformation.rotate((event->x() - prePos.x())/10.0, QVector3D(1.0, 0.0, 0.0));
