@@ -43,16 +43,7 @@ public:
 	pickedNames = picked;
   }
 
-  void set_joint_transform(const QMatrix4x4& m)
-  {
-	m_joint = m;
-	for (int i = 0; i < pickedNames.size(); i++) {
-		if (m_name == pickedNames[i]) {
-			m_trans = m_trans * m;
-			break;
-		}
-	}
-  }
+  virtual void set_joint(const float jointAngle, const QVector3D jointAxis);
 
   void set_shader_program(QGLShaderProgram *program);
 
@@ -87,6 +78,8 @@ protected:
   QMatrix4x4 m_invtrans;
   QMatrix4x4 m_scale;
   QMatrix4x4 m_joint;
+  float jointAngle;
+  QVector3D jointAxis;
 
   // Whole Transformation 
   QMatrix4x4 m_parent_trans;
@@ -109,6 +102,7 @@ public:
   virtual void walk_gl(bool bicking = false) const;
 
   virtual bool is_joint() const;
+  virtual void set_joint(const float jointAngle, const QVector3D jointAxis);
 
   void set_joint_x(double min, double init, double max);
   void set_joint_y(double min, double init, double max);

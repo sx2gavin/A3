@@ -19,10 +19,11 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
 #endif
 {
 	sphereQuality = 2; // recursionlevel of refining the sphere.
-	b_z_buffer = true;
+	b_trackball_circle = false;
+	b_z_buffer = false;
 	b_back_face_cull = false;
 	b_front_face_cull = false;
-	mode = JOINTS;
+	mode = POSITION_ORIENTATION;
 }
 
 Viewer::~Viewer() {
@@ -202,7 +203,9 @@ void Viewer::paintGL() {
     // Draw stuff
 	
 	draw_scene();
-    draw_trackball_circle();
+	if (b_trackball_circle) {
+		draw_trackball_circle();
+	}
 
 }
 
@@ -259,12 +262,14 @@ void Viewer::mouseMoveEvent ( QMouseEvent * event ) {
 			mTransformMatrix = transformMat * mTransformMatrix;
 		}
 	} else if (mode == JOINTS) {
-		mJointTransformation.setToIdentity();
 		if (pressedMouseButton == Qt::MidButton) {
-			mJointTransformation.rotate((event->y() - prePos.y())/10.0, QVector3D(0.0, 1.0, 0.0));
+			jointAxis =  QVector3D(0.0, 1.0, 0.0);
+			jointAngle = (event->y() - prePos.y())/10.0;
+			// mJointTransformation.rotate((event->y() - prePos.y())/10.0, QVector3D(0.0, 1.0, 0.0));
 		} else if (pressedMouseButton == Qt::RightButton) {
-				
-			mJointTransformation.rotate((event->x() - prePos.x())/10.0, QVector3D(1.0, 0.0, 0.0));
+			jointAxis = QVector3D(1.0, 0.0, 0.0);
+			jointAngle = (event->x() - prePos.x())/10.0;
+			// mJointTransformation.rotate((event->x() - prePos.x())/10.0, QVector3D(1.0, 0.0, 0.0));
 		}
 	}
 	prePos.setX(event->x());
@@ -585,7 +590,10 @@ void Viewer::draw_scene()
 	// glDrawArrays(GL_TRIANGLES, 0, 20 * 4 * 4 * 3);
 	root->set_shader_program(&mProgram);
 	root->set_parent_transform(mTransformMatrix);
+	if (mode == POSITION_ORIENTATION){
+	   jointAngle = 0;
+	}	   
 	root->set_picked_names(pickedNames);
-	root->set_joint_transform(mJointTransformation);
+	root->set_joint(jointAngle, jointAxis);
 	root->walk_gl(true);	
 }

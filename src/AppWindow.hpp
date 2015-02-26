@@ -36,6 +36,13 @@ private slots :
 	void mode_position_orientation();
 	void mode_joint();
 
+	void option_circle();
+	void option_z_buffer();
+	void option_backface();
+	void option_frontface();
+
+
+
 private:
     void createActions();
     void createMenu();
@@ -44,10 +51,12 @@ private:
     // Each menu itself
     QMenu* m_menu_app;
 	QMenu* m_menu_mode;
+	QMenu* m_menu_option;
 	QMenu* m_menu_picking;
 
     std::vector<QAction*> m_menu_app_actions;
 	std::vector<QAction*> m_menu_mode_actions;
+	std::vector<QAction*> m_menu_option_actions;
 	std::vector<QAction*> m_menu_picking_actions;
     Viewer* m_viewer;
 };

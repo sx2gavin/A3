@@ -30,10 +30,12 @@ public:
 
 	void setSceneNode(SceneNode* node);
 	void togglePickedName(std::string name);
-	void setMode(Mode mode) 
-	{
-		this->mode = mode;
-	}
+	void setMode(Mode mode) { this->mode = mode; }
+	void toggleCircle(){ b_trackball_circle = !b_trackball_circle; update();}
+	void toggleZbuffer() { b_z_buffer = !b_z_buffer; update();}
+	void toggleBackfaceCull() { b_back_face_cull = !b_back_face_cull; update();}
+	void toggleFrontfaceCull() { b_front_face_cull = !b_front_face_cull;update();}
+	
 
     // If you want to render a new frame, call do not call paintGL(),
     // instead, call update() to ensure that the view gets a paint 
@@ -104,7 +106,8 @@ private:
     QMatrix4x4 mPerspMatrix;
 	QMatrix4x4 mViewMatrix;
     QMatrix4x4 mTransformMatrix;
-	QMatrix4x4 mJointTransformation;
+	QVector3D jointAxis;
+	float jointAngle; 
     QGLShaderProgram mProgram;
 	
 	// sphere

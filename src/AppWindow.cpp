@@ -129,25 +129,51 @@ void AppWindow::createActions() {
 
 
 	// Modes 
-	QAction* mode_pos_act = new QAction(tr("Position/Orientation"), this);
+	QAction* mode_pos_act = new QAction(tr("&Position/Orientation"), this);
     m_menu_mode_actions.push_back(mode_pos_act);
 	mode_pos_act->setShortcut(Qt::Key_P);
     mode_pos_act->setStatusTip(tr("position/orientation"));
     connect(mode_pos_act, SIGNAL(triggered()), this, SLOT(mode_position_orientation()));
 
-	QAction* mode_joint_act = new QAction(tr("Joint"), this);
+	QAction* mode_joint_act = new QAction(tr("&Joint"), this);
     m_menu_mode_actions.push_back(mode_joint_act);
 	mode_joint_act->setShortcut(Qt::Key_J);
     mode_joint_act->setStatusTip(tr("Joint"));
     connect(mode_joint_act, SIGNAL(triggered()), this, SLOT(mode_joint()));
 
+	// Option
+	
+	QAction* option_circle_act = new QAction(tr("&Circle"), this);
+    m_menu_option_actions.push_back(option_circle_act);
+	option_circle_act->setShortcut(Qt::Key_C);
+    option_circle_act->setStatusTip(tr("Circle"));
+    connect(option_circle_act, SIGNAL(triggered()), this, SLOT(option_circle()));
+
+	QAction* option_z_buffer_act = new QAction(tr("&Z-buffer"), this);
+    m_menu_option_actions.push_back(option_z_buffer_act);
+	option_z_buffer_act->setShortcut(Qt::Key_Z);
+    option_z_buffer_act->setStatusTip(tr("Z-buffer"));
+    connect(option_z_buffer_act, SIGNAL(triggered()), this, SLOT(option_z_buffer()));
+
+	QAction* option_backface_act = new QAction(tr("&Backface Cull"), this);
+    m_menu_option_actions.push_back(option_backface_act);
+	option_backface_act->setShortcut(Qt::Key_B);
+    option_backface_act->setStatusTip(tr("Backface Cull"));
+    connect(option_backface_act, SIGNAL(triggered()), this, SLOT(option_backface()));
+
+	QAction* option_frontface_act = new QAction(tr("&Frontface Cull"), this);
+    m_menu_option_actions.push_back(option_frontface_act);
+	option_frontface_act->setShortcut(Qt::Key_F);
+    option_frontface_act->setStatusTip(tr("Frontface cull"));
+    connect(option_frontface_act, SIGNAL(triggered()), this, SLOT(option_frontface()));
 
 }
 
 void AppWindow::createMenu() {
     m_menu_app = menuBar()->addMenu(tr("&Application"));
-	m_menu_picking = menuBar()->addMenu(tr("&Picking"));
 	m_menu_mode = menuBar()->addMenu(tr("Mode"));
+	m_menu_option = menuBar()->addMenu(tr("Option"));
+	m_menu_picking = menuBar()->addMenu(tr("&Picking"));
 
     for (auto& action : m_menu_app_actions) {
         m_menu_app->addAction(action);
@@ -160,6 +186,11 @@ void AppWindow::createMenu() {
 
 	for (auto& action : m_menu_mode_actions) {
 		m_menu_mode->addAction(action);
+	}
+	
+	for (auto& action : m_menu_option_actions) {
+		action->setCheckable(true);
+		m_menu_option->addAction(action);
 	}
 }
 
@@ -228,4 +259,21 @@ void AppWindow::mode_position_orientation()
 void AppWindow::mode_joint()
 {
 	m_viewer->setMode(JOINTS);
+}
+
+void AppWindow::option_circle()
+{
+	m_viewer->toggleCircle();
+}
+void AppWindow::option_z_buffer()
+{
+	m_viewer->toggleZbuffer();
+}
+void AppWindow::option_backface()
+{
+	m_viewer->toggleBackfaceCull();
+}
+void AppWindow::option_frontface()
+{
+	m_viewer->toggleFrontfaceCull();
 }

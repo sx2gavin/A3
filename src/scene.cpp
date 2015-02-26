@@ -16,7 +16,7 @@ void SceneNode::walk_gl(bool picking) const
 	  (*it)->set_shader_program(mProgram);
 	  (*it)->set_parent_transform(m_parent_trans * m_trans);
 	  (*it)->set_picked_names(pickedNames);
-	  (*it)->set_joint_transform(m_joint);
+	  (*it)->set_joint(jointAngle, jointAxis);
       (*it)->walk_gl(picking);
   }	  
 }
@@ -24,6 +24,13 @@ void SceneNode::walk_gl(bool picking) const
 void SceneNode::set_shader_program(QGLShaderProgram *program) {
 	mProgram = program;
 }
+
+void SceneNode::set_joint(const float jointAngle, const QVector3D jointAxis)
+{
+	this->jointAngle = jointAngle;
+	this->jointAxis = jointAxis;
+}
+
 
 void SceneNode::rotate(char axis, double angle)
 {
@@ -77,6 +84,19 @@ void JointNode::walk_gl(bool picking) const
 bool JointNode::is_joint() const
 {
   return true;
+}
+
+void JointNode::set_joint(const float jointAngle, const QVector3D jointAxis)
+{
+	this->jointAngle = jointAngle;
+	this->jointAxis = jointAxis;
+
+	for (int i = 0; i < pickedNames.size(); i++) {
+		if (m_name == pickedNames[i]) {
+			m_trans.rotate(jointAngle, jointAxis);
+			break;
+		}
+	}
 }
 
 void JointNode::set_joint_x(double min, double init, double max)

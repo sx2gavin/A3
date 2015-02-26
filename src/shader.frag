@@ -12,7 +12,7 @@ void main()
 	vec3 n = normalize(frag_normal);
 	vec3 l = normalize(light);
 	  if (front_face_cull || back_face_cull) {
-	  	float cosTheta = clamp( dot(n, l), -1, 1);
+	  	float cosTheta = clamp( dot(n, l), -5, 1);
 	  	if (cosTheta > 0) {
 	  		finalColor = vec4(frag_color * cosTheta,  1.0);
 	  	} else {
