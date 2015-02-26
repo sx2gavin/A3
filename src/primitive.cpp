@@ -2,7 +2,7 @@
 #include <cmath>
 #include <QtOpenGL>
 #include <iostream>
-
+#include <QColor>
 Primitive::~Primitive()
 {
 }
@@ -28,6 +28,10 @@ void Primitive::set_scale(QMatrix4x4 scale)
 
 void Sphere::walk_gl(bool picking) const
 {
+	if (picking) {
+		int mColorLocation = mProgram->uniformLocation("frag_color");
+		mProgram->setUniformValue(mColorLocation, 0.0, 1.0, 1.0);
+	}
 	int mModelMLocation = mProgram->uniformLocation("mMatrix"); 
 	int mScaleLocation = mProgram->uniformLocation("scaleMatrix");
 	mProgram->setUniformValue(mModelMLocation, mTransformMatrix); 

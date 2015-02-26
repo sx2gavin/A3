@@ -51,10 +51,12 @@ void Viewer::togglePickedName(std::string name)
 	for (int i = 0; i < pickedNames.size(); i++) {
 		if (pickedNames[i] == name) {
 			pickedNames.remove(i);
+			update();
 			return;
 		}
 	}
 	pickedNames.push_back(name);
+	update();
 }	
 
 void Viewer::initializeGL() {
@@ -267,7 +269,7 @@ void Viewer::mouseMoveEvent ( QMouseEvent * event ) {
 			jointAngle = (event->y() - prePos.y())/10.0;
 			// mJointTransformation.rotate((event->y() - prePos.y())/10.0, QVector3D(0.0, 1.0, 0.0));
 		} else if (pressedMouseButton == Qt::RightButton) {
-			jointAxis = QVector3D(1.0, 0.0, 0.0);
+			jointAxis = QVector3D(-1.0, 0.0, 0.0);
 			jointAngle = (event->x() - prePos.x())/10.0;
 			// mJointTransformation.rotate((event->x() - prePos.x())/10.0, QVector3D(1.0, 0.0, 0.0));
 		}

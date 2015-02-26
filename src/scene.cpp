@@ -4,6 +4,7 @@
 SceneNode::SceneNode(const std::string& name)
   : m_name(name)
 {
+	picked = false;
 }
 
 SceneNode::~SceneNode()
@@ -78,7 +79,14 @@ JointNode::~JointNode()
 
 void JointNode::walk_gl(bool picking) const
 {
-	SceneNode::walk_gl(picking);
+  for (std::list<SceneNode*>::const_iterator it = m_children.begin(); it != m_children.end(); ++it) {
+	  (*it)->set_picked(picked);
+	  (*it)->set_shader_program(mProgram);
+	  (*it)->set_parent_transform(m_parent_trans * m_trans);
+	  (*it)->set_picked_names(pickedNames);
+	  (*it)->set_joint(jointAngle, jointAxis);
+      (*it)->walk_gl(picking);
+  }	  
 }
 
 bool JointNode::is_joint() const
@@ -86,17 +94,36 @@ bool JointNode::is_joint() const
   return true;
 }
 
-void JointNode::set_joint(const float jointAngle, const QVector3D jointAxis)
+void JointNode::set_joint(const float angle, const QVector3D axis)
 {
-	this->jointAngle = jointAngle;
-	this->jointAxis = jointAxis;
+	jointAngle = angle;
+	jointAxis = axis;
 
 	for (int i = 0; i < pickedNames.size(); i++) {
 		if (m_name == pickedNames[i]) {
+			if (jointAxis.x() == -1.0) { // X axis	
+				if (m_joint_x.init + jointAngle > m_joint_x.max) {
+					jointAngle = m_joint_x.max - m_joint_x.init;
+				} else if (m_joint_x.init + jointAngle < m_joint_x.min) {
+					jointAngle = m_joint_x.init - m_joint_x.init;
+				}	
+				m_joint_x.init+=jointAngle;
+				std::cerr << "x min= " << m_joint_x.min << ", x init= " << m_joint_x.init << ", x max= " << m_joint_x.max << std::endl;
+			} else if (jointAxis.y() == 1.0) {
+				if (m_joint_y.init + jointAngle > m_joint_y.max) {
+					jointAngle = m_joint_y.max - m_joint_y.init;
+				} else if (m_joint_y.init + jointAngle < m_joint_y.min) {
+					jointAngle = m_joint_y.init - m_joint_y.init;
+				}	
+				m_joint_y.init+=jointAngle;
+				std::cerr << "y min= " << m_joint_y.min << ", y init= " << m_joint_y.init << ", y max= " << m_joint_y.max << std::endl;
+			}	
 			m_trans.rotate(jointAngle, jointAxis);
-			break;
+			picked = true;
+			return;
 		}
 	}
+	picked = false;
 }
 
 void JointNode::set_joint_x(double min, double init, double max)
@@ -130,8 +157,8 @@ void GeometryNode::walk_gl(bool picking) const
 	m_primitive->set_shader_program(mProgram);
 	m_primitive->set_transformation(m_parent_trans * m_trans);
 	m_primitive->set_scale(m_scale);
-	m_primitive->walk_gl(picking);
+	m_primitive->walk_gl(picked);
 	
-	SceneNode::walk_gl(picking);
+	SceneNode::walk_gl();
 }
  

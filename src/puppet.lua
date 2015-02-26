@@ -35,7 +35,7 @@ neck:set_material(white)
 neck:translate(0.0, 0.1, 0.0)
 neck:scale(0.2, 0.5, 0.2)
 
-n_h_joint = gr.joint('n_h_joint', {-15.0, 0.0, 15.0}, {-15.0, 0.0, 15.0})
+n_h_joint = gr.joint('n_h_joint', {-15.0, 0.0, 15.0}, {-45.0, 0.0, 45.0})
 neck:add_child(n_h_joint)
 n_h_joint:translate(0.0, 0.5, 0.0);
 
@@ -52,7 +52,7 @@ nose:translate(0.0, 0.0, 0.25)
 nose:scale(0.1, 0.1, 0.5)
 
 -- right arm
-s_u_joint_r = gr.joint('s_u_joint_r', {-90.0, 0.0, 90.0}, {-90.0, 0.0, 90.0})
+s_u_joint_r = gr.joint('s_u_joint_r', {-45.0, 0.0, 45.0}, {-90.0, 0.0, 90.0})
 shoulder:add_child(s_u_joint_r)
 s_u_joint_r:translate(1.5, 0.0, 0.0)
 s_u_joint_r:rotate('z', -90.0)
@@ -63,7 +63,7 @@ upper_arm_r:set_material(blue)
 upper_arm_r:translate(1.0, 0.0, 0.0)
 upper_arm_r:scale(1.0, 0.2, 0.2)
 
-u_f_joint_r = gr.joint('u_f_joint_r', {-90.0, 0.0, 90.0}, {-90.0, 0.0, 90.0})
+u_f_joint_r = gr.joint('u_f_joint_r', {-45.0, 0.0, 45.0}, {-90.0, 0.0, 0.0})
 upper_arm_r:add_child(u_f_joint_r)
 u_f_joint_r:translate(1.0, 0.0, 0.0)
 
@@ -73,7 +73,7 @@ forearm_r:set_material(blue)
 forearm_r:translate(0.9, 0.0, 0.0)
 forearm_r:scale(1.0, 0.15, 0.15)
 
-f_h_joint_r = gr.joint('f_h_joint_r', {-90.0, 0.0, 90.0}, {-90.0, 0.0, 90.0})
+f_h_joint_r = gr.joint('f_h_joint_r', {-45.0, 0.0, 45.0}, {-45.0, 0.0, 45.0})
 forearm_r:add_child(f_h_joint_r)
 f_h_joint_r:translate(1.0, 0.0, 0.0)
 
@@ -84,7 +84,7 @@ hand_r:translate(0.2, 0.0, 0.0)
 hand_r:scale(0.25, 0.25, 0.25)
 
 -- left arm
-s_u_joint_l = gr.joint('s_u_joint_l', {-90.0, 0.0, 90.0}, {-90.0, 0.0, 90.0})
+s_u_joint_l = gr.joint('s_u_joint_l', {-45.0, 0.0, 45.0}, {-90.0, 0.0, 90.0})
 shoulder:add_child(s_u_joint_l)
 s_u_joint_l:translate(-1.5, 0.0, 0.0)
 s_u_joint_l:rotate('z', 90.0)
@@ -95,7 +95,7 @@ upper_arm_l:set_material(blue)
 upper_arm_l:translate(-1.0, 0.0, 0.0)
 upper_arm_l:scale(1.0, 0.2, 0.2)
 
-u_f_joint_l = gr.joint('u_f_joint_l', {-90.0, 0.0, 90.0}, {-90.0, 0.0, 90.0})
+u_f_joint_l = gr.joint('u_f_joint_l', {-45.0, 0.0, 45.0}, {-90.0, 0.0, 0.0})
 upper_arm_l:add_child(u_f_joint_l)
 u_f_joint_l:translate(-1.0, 0.0, 0.0)
 
@@ -105,7 +105,7 @@ forearm_l:set_material(blue)
 forearm_l:translate(-0.9, 0.0, 0.0)
 forearm_l:scale(1.0, 0.15, 0.15)
 
-f_h_joint_l = gr.joint('f_h_joint_l', {-90.0, 0.0, 90.0}, {-90.0, 0.0, 90.0})
+f_h_joint_l = gr.joint('f_h_joint_l', {-45.0, 0.0, 45.0}, {-45.0, 0.0, 45.0})
 forearm_l:add_child(f_h_joint_l)
 f_h_joint_l:translate(-1.0, 0.0, 0.0)
 
@@ -123,7 +123,7 @@ hip:scale(1.0, 0.5, 0.7)
 
 
 -- Right leg
-h_t_joint_r = gr.joint('h_t_joint_r', {-90.0, 0.0, 90.0}, {-90.0, 0.0, 90.0})
+h_t_joint_r = gr.joint('h_t_joint_r', {-45.0, 0.0, 45.0}, {-135.0, 0.0, 45.0})
 hip:add_child(h_t_joint_r)
 h_t_joint_r:translate(0.5, 0.0, 0.0)
 h_t_joint_r:rotate('z', -90)
@@ -134,7 +134,7 @@ thigh_r:set_material(blue)
 thigh_r:translate(1.0, 0.0, 0.0)
 thigh_r:scale(1.0, 0.3, 0.3)
 
-t_c_joint_r = gr.joint('t_c_joint_r', {-90.0, 0.0, 90.0}, {-90.0, 0.0, 90.0})
+t_c_joint_r = gr.joint('t_c_joint_r', {0.0, 0.0, 0.0}, {0.0, 0.0, 135.0})
 thigh_r:add_child(t_c_joint_r)
 t_c_joint_r:translate(1.0, 0.0, 0.0)
 
@@ -144,7 +144,7 @@ calf_r:set_material(blue)
 calf_r:translate(0.9, 0.0, 0.0)
 calf_r:scale(1.0, 0.2, 0.2)
 
-c_f_joint_r = gr.joint('c_f_joint_r', {-90.0, 0.0, 90.0}, {-90.0, 0.0, 90.0})
+c_f_joint_r = gr.joint('c_f_joint_r', {-20.0, 0.0, 20.0}, {-45.0, 0.0, 45.0})
 calf_r:add_child(c_f_joint_r)
 c_f_joint_r:translate(1.0, 0.0, 0.0)
 c_f_joint_r:rotate('y', -90)
@@ -156,36 +156,36 @@ foot_r:translate(0.5, 0.0, 0.0)
 foot_r:scale(0.5, 0.2, 0.2)
 
 -- left leg
-h_t_joint_l = gr.joint('h_t_joint_l', {-90.0, 0.0, 90.0}, {-90.0, 0.0, 90.0})
+h_t_joint_l = gr.joint('h_t_joint_l', {-45.0, 0.0, 45.0}, {-135.0, 0.0, 45.0})
 hip:add_child(h_t_joint_l)
 h_t_joint_l:translate(-0.5, 0.0, 0.0)
-h_t_joint_l:rotate('z', 90)
+h_t_joint_l:rotate('z', -90)
 
 thigh_l = gr.sphere('thigh_l')
 h_t_joint_l:add_child(thigh_l)
 thigh_l:set_material(blue)
-thigh_l:translate(-1.0, 0.0, 0.0)
+thigh_l:translate(1.0, 0.0, 0.0)
 thigh_l:scale(1.0, 0.3, 0.3)
 
-t_c_joint_l = gr.joint('t_c_joint_l', {-90.0, 0.0, 90.0}, {-90.0, 0.0, 90.0})
+t_c_joint_l = gr.joint('t_c_joint_l', {0.0, 0.0, 0.0}, {0.0, 0.0, 135.0})
 thigh_l:add_child(t_c_joint_l)
-t_c_joint_l:translate(-1.0, 0.0, 0.0)
+t_c_joint_l:translate(1.0, 0.0, 0.0)
 
 calf_l = gr.sphere('calf_l')
 t_c_joint_l:add_child(calf_l)
 calf_l:set_material(blue)
-calf_l:translate(-0.9, 0.0, 0.0)
+calf_l:translate(0.9, 0.0, 0.0)
 calf_l:scale(1.0, 0.2, 0.2)
 
-c_f_joint_l = gr.joint('c_f_joint_l', {-90.0, 0.0, 90.0}, {-90.0, 0.0, 90.0})
+c_f_joint_l = gr.joint('c_f_joint_l', {-20.0, 0.0, 20.0}, {-45.0, 0.0, 45.0})
 calf_l:add_child(c_f_joint_l)
-c_f_joint_l:translate(-1.0, 0.0, 0.0)
-c_f_joint_l:rotate('y', 90)
+c_f_joint_l:translate(1.0, 0.0, 0.0)
+c_f_joint_l:rotate('y', -90)
 
 foot_l = gr.sphere('foot_l')
 c_f_joint_l:add_child(foot_l)
 foot_l:set_material(green)
-foot_l:translate(-0.5, 0.0, 0.0)
+foot_l:translate(0.5, 0.0, 0.0)
 foot_l:scale(0.5, 0.2, 0.2)
 
 --  s0 = gr.sphere('s0')

@@ -43,7 +43,12 @@ public:
 	pickedNames = picked;
   }
 
-  virtual void set_joint(const float jointAngle, const QVector3D jointAxis);
+  void set_picked(bool picked)
+  {
+	  this->picked = picked;
+  }
+
+  virtual void set_joint(const float angle, const QVector3D axis);
 
   void set_shader_program(QGLShaderProgram *program);
 
@@ -72,6 +77,7 @@ protected:
   int m_id;
   std::string m_name;
   QVector<std::string> pickedNames; 
+  bool picked;
 
   // Transformations
   QMatrix4x4 m_trans;
