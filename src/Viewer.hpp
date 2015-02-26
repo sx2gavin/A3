@@ -90,6 +90,11 @@ private:
 	int mModelMLocation;
 	int mViewMLocation;
 
+	bool b_trackball_circle;
+	bool b_z_buffer;
+	bool b_back_face_cull;
+	bool b_front_face_cull;
+
     QMatrix4x4 mPerspMatrix;
 	QMatrix4x4 mViewMatrix;
     QMatrix4x4 mTransformMatrix;

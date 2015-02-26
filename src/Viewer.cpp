@@ -19,6 +19,9 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
 #endif
 {
 	sphereQuality = 2; // recursionlevel of refining the sphere.
+	b_z_buffer = false;
+	b_back_face_cull = false;
+	b_front_face_cull = false;
 }
 
 Viewer::~Viewer() {
@@ -50,7 +53,6 @@ void Viewer::initializeGL() {
 
     glShadeModel(GL_SMOOTH);
     glClearColor( 0.4, 0.4, 0.4, 0.0 );
-    glEnable(GL_DEPTH_TEST);
     
     if (!mProgram.addShaderFromSourceFile(QGLShader::Vertex, "shader.vert")) {
         std::cerr << "Cannot load vertex shader." << std::endl;
@@ -145,10 +147,39 @@ void Viewer::initializeGL() {
 }
 
 void Viewer::paintGL() {
+
+	if (b_z_buffer) {
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+	} else {
+		glDisable(GL_DEPTH_TEST);
+	}
+
+	int backFaceCullLocation = mProgram.uniformLocation("back_face_cull");
+	mProgram.setUniformValue(backFaceCullLocation, b_back_face_cull);
+
+	if (b_back_face_cull) {
+		glFrontFace(GL_CCW);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+	} else {
+		glDisable(GL_CULL_FACE);
+	}
+
+	int frontFaceCullLocation = mProgram.uniformLocation("front_face_cull");
+	mProgram.setUniformValue(frontFaceCullLocation, b_front_face_cull);
+	if (b_front_face_cull) {
+		glFrontFace(GL_CCW);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
+	} else {
+		glDisable(GL_CULL_FACE);
+	}
+
     // Clear framebuffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Set up lighting
+	// Set up lighting
 	
 	QVector3D light(0.0, 0.0, 20.0); 
 
@@ -183,10 +214,17 @@ void Viewer::mousePressEvent ( QMouseEvent * event ) {
     std::cerr << "Stub: button " << event->button() << " pressed\n";
 	pressedMouseButton = event->button();
 	prePos = QVector2D(event->x(), event->y());
+
 }
 
 void Viewer::mouseReleaseEvent ( QMouseEvent * event ) {
     std::cerr << "Stub: button " << event->button() << " released\n";
+
+	if (event->button() == Qt::LeftButton) {
+		unsigned char data[4];
+		glReadPixels(event->x(), event->y(), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		std::cerr << (int)data[0] << ", " << (int)data[1] << ", " << (int)data[2] << ", " << (int)data[3] << std::endl;
+	}
 }
 
 void Viewer::mouseMoveEvent ( QMouseEvent * event ) {
@@ -194,8 +232,10 @@ void Viewer::mouseMoveEvent ( QMouseEvent * event ) {
 	QMatrix4x4 transformMat;
 	if (pressedMouseButton == Qt::LeftButton) {
 		transformMat.translate((event->x()-prePos.x()) / 100.0, (prePos.y()-event->y()) / 100.0, 0.0);
+		mTransformMatrix = transformMat * mTransformMatrix;
 	} else if (pressedMouseButton == Qt::MidButton) {
-		transformMat.translate(0.0, 0.0, (prePos.y() - event->y())/100.0);
+		transformMat.translate(0.0, 0.0, (event->y() - prePos.y())/100.0);
+		mTransformMatrix = transformMat * mTransformMatrix;
 	} else if (pressedMouseButton == Qt::RightButton) {
 		float fVecX;
 		float fVecY;
@@ -208,10 +248,9 @@ void Viewer::mouseMoveEvent ( QMouseEvent * event ) {
 					(float)diameter, 
 					&fVecX, &fVecY, &fVecZ); 
 
-		std::cerr << "x = " << fVecX << "; y= " << fVecY << "; z=" << fVecZ<< std::endl;
 		vAxisRotMatrix(fVecX, fVecY, fVecZ, transformMat); 
+		mTransformMatrix = mTransformMatrix * transformMat;
 	}
-	mTransformMatrix = transformMat * mTransformMatrix;
 	prePos.setX(event->x());
 	prePos.setY(event->y());
 
@@ -391,9 +430,9 @@ void Viewer::createSphereGeometry() {
 			QVector3D m_ac = getMiddlePoint(a, c);
 
 			addTriangle(&newSphereVertices, a, m_ab, m_ac);
-			addTriangle(&newSphereVertices, b, m_ab, m_bc);
+			addTriangle(&newSphereVertices, b, m_bc, m_ab);
 			addTriangle(&newSphereVertices, c, m_ac, m_bc);
-			addTriangle(&newSphereVertices, m_bc, m_ab, m_ac);
+			addTriangle(&newSphereVertices, m_bc, m_ac, m_ab);
 		}
 		sphereVertices.clear();
 		sphereVertices = newSphereVertices;
